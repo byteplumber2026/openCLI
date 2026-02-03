@@ -80,17 +80,17 @@ export async function selectProvider(): Promise<Provider> {
   return provider;
 }
 
-export async function selectModel(provider: Provider): Promise<string> {
+export async function selectModel(provider: Provider, forcePrompt = false): Promise<string> {
   const defaultModel = getDefaultModel();
   const models = provider.listModels();
 
-  // If default model exists for this provider, use it
-  if (defaultModel && models.find(m => m.id === defaultModel)) {
+  // If default model exists for this provider, use it (unless force prompt)
+  if (!forcePrompt && defaultModel && models.find(m => m.id === defaultModel)) {
     return defaultModel;
   }
 
-  // If only one model, use it
-  if (models.length === 1) {
+  // If only one model, use it (unless force prompt)
+  if (!forcePrompt && models.length === 1) {
     return models[0].id;
   }
 

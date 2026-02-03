@@ -70,7 +70,7 @@ export async function handleCommand(
       return { action: 'continue', state: { ...state, messages: [] } };
 
     case 'models': {
-      const model = await selectModel(state.provider);
+      const model = await selectModel(state.provider, true);
       console.log(chalk.dim(`Switched to ${model}`));
       return { action: 'continue', state: { ...state, model } };
     }
