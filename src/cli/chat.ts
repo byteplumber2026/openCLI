@@ -5,6 +5,7 @@ import type { Provider, Message } from '../providers/types.js';
 import { formatPrompt, streamWrite } from './renderer.js';
 import { isCommand, parseCommand, handleCommand, type ChatState } from './commands.js';
 import { buildFileContext } from '../context/files.js';
+import { TOOL_DEFINITIONS, executeTool, getSystemPrompt } from '../tools/index.js';
 
 export async function startChat(provider: Provider, model: string): Promise<void> {
   let state: ChatState = {
@@ -12,6 +13,11 @@ export async function startChat(provider: Provider, model: string): Promise<void
     model,
     messages: [],
   };
+
+  // Set model on provider if supported
+  if ('setModel' in provider) {
+    (provider as any).setModel(model);
+  }
 
   console.log(chalk.dim('\nType /help for commands, /exit to quit.\n'));
 
@@ -64,33 +70,68 @@ export async function startChat(provider: Provider, model: string): Promise<void
       const { context, cleanInput } = await buildFileContext(trimmed);
       const userContent = context ? `${context}\n\n${cleanInput}` : cleanInput;
 
-      // Add user message
       state.messages.push({ role: 'user', content: userContent });
 
-      // Stream response
-      console.log();
-      let fullResponse = '';
-
-      try {
-        for await (const chunk of state.provider.chat(state.messages, {
-          temperature: 0.7,
-        })) {
-          streamWrite(chunk.content);
-          fullResponse += chunk.content;
-        }
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        console.log(chalk.red(`\nError: ${errorMsg}`));
-        state.messages.pop(); // Remove failed user message
-        continue;
-      }
-
-      console.log('\n');
-
-      // Add assistant message
-      state.messages.push({ role: 'assistant', content: fullResponse });
+      // Chat with tool loop
+      await chatWithTools(state);
     }
   };
 
   await runLoop();
+}
+
+async function chatWithTools(state: ChatState): Promise<void> {
+  const maxIterations = 10; // Prevent infinite loops
+  let iterations = 0;
+
+  while (iterations < maxIterations) {
+    iterations++;
+    console.log();
+
+    let fullResponse = '';
+    let toolCalls: any[] | undefined;
+
+    try {
+      for await (const chunk of state.provider.chat(state.messages, {
+        temperature: 0.7,
+        systemPrompt: getSystemPrompt(),
+        tools: TOOL_DEFINITIONS,
+      })) {
+        streamWrite(chunk.content);
+        fullResponse += chunk.content;
+        if (chunk.toolCalls) {
+          toolCalls = chunk.toolCalls;
+        }
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.log(chalk.red(`\nError: ${errorMsg}`));
+      state.messages.pop();
+      return;
+    }
+
+    // If no tool calls, we're done
+    if (!toolCalls || toolCalls.length === 0) {
+      console.log('\n');
+      state.messages.push({ role: 'assistant', content: fullResponse });
+      return;
+    }
+
+    // Add assistant message with tool calls
+    state.messages.push({ role: 'assistant', content: fullResponse, toolCalls });
+
+    // Execute each tool call
+    for (const call of toolCalls) {
+      const result = await executeTool(call);
+      state.messages.push({
+        role: 'tool',
+        content: result.result,
+        toolCallId: call.id,
+      });
+    }
+
+    // Loop continues - LLM will process tool results
+  }
+
+  console.log(chalk.yellow('\nMax tool iterations reached'));
 }
