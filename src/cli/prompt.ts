@@ -28,18 +28,18 @@ export function getProviderChoices(): ProviderChoice[] {
   });
 }
 
-export async function selectProvider(): Promise<Provider> {
+export async function selectProvider(forcePrompt = false): Promise<Provider> {
   const defaultProvider = getDefaultProvider();
   const available = getAvailableProviders();
 
-  // If default is set and available, use it
-  if (defaultProvider && available.includes(defaultProvider)) {
+  // If default is set and available, use it (unless force prompt)
+  if (!forcePrompt && defaultProvider && available.includes(defaultProvider)) {
     const apiKey = getApiKey(defaultProvider)!;
     return createProvider(defaultProvider, apiKey);
   }
 
-  // If only one provider available, use it
-  if (available.length === 1) {
+  // If only one provider available, use it (unless force prompt)
+  if (!forcePrompt && available.length === 1) {
     const apiKey = getApiKey(available[0])!;
     const provider = createProvider(available[0], apiKey);
     console.log(chalk.dim(`Using ${provider.name} (only available provider)`));
@@ -56,7 +56,9 @@ export async function selectProvider(): Promise<Provider> {
   }
 
   // Interactive selection
-  console.log(chalk.bold('\nWelcome to open-cli!\n'));
+  if (!forcePrompt) {
+    console.log(chalk.bold('\nWelcome to open-cli!\n'));
+  }
 
   const choices = getProviderChoices();
   const providerName = await select({

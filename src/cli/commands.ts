@@ -76,8 +76,8 @@ export async function handleCommand(
     }
 
     case 'provider': {
-      const provider = await selectProvider();
-      const model = await selectModel(provider);
+      const provider = await selectProvider(true);
+      const model = await selectModel(provider, true);
       console.log(chalk.dim(`Switched to ${provider.name}/${model}`));
       return { action: 'continue', state: { ...state, provider, model, messages: [] } };
     }
