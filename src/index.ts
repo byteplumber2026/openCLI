@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
+// Suppress punycode deprecation warning from dependencies
+process.removeAllListeners('warning');
+
 import { program } from 'commander';
 import chalk from 'chalk';
 import { selectProvider, selectModel } from './cli/prompt.js';
 import { startChat } from './cli/chat.js';
-import { getAvailableProviders } from './config/env.js';
+import { getAvailableProviders, SUPPORTED_PROVIDERS, getEnvVar } from './config/env.js';
 
 program
   .name('open-cli')
@@ -18,9 +21,9 @@ program
       const available = getAvailableProviders();
       if (available.length === 0) {
         console.log(chalk.red('No API keys found. Please set one of:'));
-        console.log(chalk.yellow('  OPENAI_API_KEY'));
-        console.log(chalk.yellow('  XAI_API_KEY'));
-        console.log(chalk.yellow('  MINIMAX_API_KEY'));
+        SUPPORTED_PROVIDERS.forEach(p => {
+          console.log(chalk.yellow(`  ${getEnvVar(p)}`));
+        });
         process.exit(1);
       }
 
