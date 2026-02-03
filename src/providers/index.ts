@@ -3,11 +3,13 @@ export * from './types.js';
 export { OpenAIProvider } from './openai.js';
 export { GrokProvider } from './grok.js';
 export { MinimaxProvider } from './minimax.js';
+export { GeminiProvider } from './gemini.js';
 
 import type { Provider } from './types.js';
 import { OpenAIProvider } from './openai.js';
 import { GrokProvider } from './grok.js';
 import { MinimaxProvider } from './minimax.js';
+import { GeminiProvider } from './gemini.js';
 import { getApiKey } from '../config/env.js';
 
 export function createProvider(name: string, apiKey: string): Provider {
@@ -18,6 +20,8 @@ export function createProvider(name: string, apiKey: string): Provider {
       return new GrokProvider(apiKey);
     case 'minimax':
       return new MinimaxProvider(apiKey);
+    case 'gemini':
+      return new GeminiProvider(apiKey);
     default:
       throw new Error(`Unknown provider: ${name}`);
   }
