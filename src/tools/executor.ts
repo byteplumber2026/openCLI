@@ -38,7 +38,8 @@ export async function executeTool(call: ToolCall, skipConfirm = false): Promise<
 
   try {
     const result = await runTool(name, args);
-    console.log(chalk.green('[Done]'), result.slice(0, 100) + (result.length > 100 ? '...' : ''));
+    console.log(chalk.green('[Done]'));
+    console.log(result);
     return { id, result };
   } catch (error: any) {
     const errMsg = error.message || 'Unknown error';
