@@ -3,8 +3,9 @@ import chalk from 'chalk';
 import type { ToolCall, ToolResult } from './types.js';
 import { shellRun } from './shell.js';
 import { fileRead, fileWrite, fileList, fileSearch } from './files.js';
+import { webSearch } from './web.js';
 
-const SAFE_TOOLS = ['file_read', 'file_list', 'file_search'];
+const SAFE_TOOLS = ['file_read', 'file_list', 'file_search', 'web_search'];
 const SAFE_COMMANDS = [
   /^ls\b/, /^cat\b/, /^pwd$/, /^echo\b/, /^head\b/,
   /^tail\b/, /^grep\b/, /^find\b/, /^which\b/, /^wc\b/,
@@ -60,6 +61,8 @@ async function runTool(name: string, args: Record<string, unknown>): Promise<str
       return fileList(args as any);
     case 'file_search':
       return fileSearch(args as any);
+    case 'web_search':
+      return webSearch(args as any);
     default:
       throw new Error(`Unknown tool: ${name}`);
   }
@@ -70,5 +73,6 @@ function formatArgs(name: string, args: Record<string, unknown>): string {
   if (name === 'file_read' || name === 'file_list') return args.path as string;
   if (name === 'file_write') return `${args.path} (${(args.content as string).length} bytes)`;
   if (name === 'file_search') return `"${args.pattern}" in ${args.path || '.'}`;
+  if (name === 'web_search') return `"${args.query}"`;
   return JSON.stringify(args);
 }

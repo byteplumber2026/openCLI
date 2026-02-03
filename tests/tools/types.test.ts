@@ -4,7 +4,7 @@ import type { ToolCall, ToolResult } from '../../src/tools/types.js';
 
 describe('Tool Types', () => {
   it('has 5 tool definitions', () => {
-    expect(TOOL_DEFINITIONS).toHaveLength(5);
+    expect(TOOL_DEFINITIONS).toHaveLength(6);
   });
 
   it('all tools have required fields', () => {

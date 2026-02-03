@@ -61,4 +61,16 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
       required: ['pattern'],
     },
   },
+  {
+    name: 'web_search',
+    description: 'Search the web for current information, news, or facts',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Search query' },
+        count: { type: 'number', description: 'Number of results (1-10, default 5)' },
+      },
+      required: ['query'],
+    },
+  },
 ];

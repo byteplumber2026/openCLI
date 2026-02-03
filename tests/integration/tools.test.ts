@@ -41,7 +41,7 @@ describe('Tools Integration', () => {
   });
 
   it('all tool definitions are valid', () => {
-    expect(TOOL_DEFINITIONS.length).toBe(5);
+    expect(TOOL_DEFINITIONS.length).toBe(6);
     for (const tool of TOOL_DEFINITIONS) {
       expect(tool.name).toBeTruthy();
       expect(tool.description).toBeTruthy();

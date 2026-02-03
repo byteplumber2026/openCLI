@@ -7,6 +7,7 @@ export function getSystemPrompt(): string {
 - file_write: Write/create files
 - file_list: List directory contents
 - file_search: Search for text in files
+- web_search: Search the web for current information, news, or facts
 
 ## Guidelines
 1. **Read before modifying** - Always read a file before editing it
