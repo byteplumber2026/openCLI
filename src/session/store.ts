@@ -18,6 +18,12 @@ function getSessionDir(projectHash: string): string {
   return join(SESSIONS_DIR, projectHash);
 }
 
+function validateTag(tag: string): void {
+  if (tag.includes("/") || tag.includes("\\")) {
+    throw new Error("Invalid tag: cannot contain path separators");
+  }
+}
+
 function getSessionPath(projectHash: string, tag: string): string {
   return join(getSessionDir(projectHash), `${tag}.json`);
 }
@@ -33,6 +39,7 @@ export async function saveSession(
   model: string,
   cwd: string,
 ): Promise<Session> {
+  validateTag(tag);
   const projectHash = getProjectHash(cwd);
   const sessionDir = getSessionDir(projectHash);
   await mkdir(sessionDir, { recursive: true });
@@ -65,6 +72,7 @@ export async function loadSession(
   tag: string,
   cwd: string,
 ): Promise<Session | null> {
+  validateTag(tag);
   const projectHash = getProjectHash(cwd);
   const sessionPath = getSessionPath(projectHash, tag);
 
@@ -114,6 +122,7 @@ export async function deleteSession(
   tag: string,
   cwd: string,
 ): Promise<boolean> {
+  validateTag(tag);
   const projectHash = getProjectHash(cwd);
   const sessionPath = getSessionPath(projectHash, tag);
 
