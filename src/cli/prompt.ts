@@ -1,9 +1,19 @@
 // src/cli/prompt.ts
-import { select, confirm } from '@inquirer/prompts';
-import chalk from 'chalk';
-import { getAvailableProviders, getApiKey, getEnvVar, SUPPORTED_PROVIDERS } from '../config/env.js';
-import { getDefaultProvider, setDefaultProvider, getDefaultModel, setDefaultModel } from '../config/settings.js';
-import { createProvider, type Provider } from '../providers/index.js';
+import { select, confirm } from "@inquirer/prompts";
+import chalk from "chalk";
+import {
+  getAvailableProviders,
+  getApiKey,
+  getEnvVar,
+  SUPPORTED_PROVIDERS,
+} from "../config/env.js";
+import {
+  getDefaultProvider,
+  setDefaultProvider,
+  getDefaultModel,
+  setDefaultModel,
+} from "../config/settings.js";
+import { createProvider, type Provider } from "../providers/index.js";
 
 interface ProviderChoice {
   name: string;
@@ -14,7 +24,7 @@ interface ProviderChoice {
 export function getProviderChoices(): ProviderChoice[] {
   const available = getAvailableProviders();
 
-  return SUPPORTED_PROVIDERS.map(provider => {
+  return SUPPORTED_PROVIDERS.map((provider) => {
     const hasKey = available.includes(provider);
     const envVar = getEnvVar(provider);
 
@@ -28,9 +38,27 @@ export function getProviderChoices(): ProviderChoice[] {
   });
 }
 
-export async function selectProvider(forcePrompt = false): Promise<Provider> {
+export async function selectProvider(
+  forcePromptOrName: boolean | string = false,
+): Promise<Provider> {
   const defaultProvider = getDefaultProvider();
   const available = getAvailableProviders();
+
+  // If provider name specified directly, use it
+  if (typeof forcePromptOrName === "string" && forcePromptOrName) {
+    if (!available.includes(forcePromptOrName)) {
+      console.log(
+        chalk.red(
+          `Provider "${forcePromptOrName}" not available. Check API key.`,
+        ),
+      );
+      process.exit(1);
+    }
+    const apiKey = getApiKey(forcePromptOrName)!;
+    return createProvider(forcePromptOrName, apiKey);
+  }
+
+  const forcePrompt = forcePromptOrName === true;
 
   // If default is set and available, use it (unless force prompt)
   if (!forcePrompt && defaultProvider && available.includes(defaultProvider)) {
@@ -48,8 +76,8 @@ export async function selectProvider(forcePrompt = false): Promise<Provider> {
 
   // If no providers available, error
   if (available.length === 0) {
-    console.log(chalk.red('No API keys found. Please set one of:'));
-    SUPPORTED_PROVIDERS.forEach(p => {
+    console.log(chalk.red("No API keys found. Please set one of:"));
+    SUPPORTED_PROVIDERS.forEach((p) => {
       console.log(chalk.yellow(`  ${getEnvVar(p)}`));
     });
     process.exit(1);
@@ -57,12 +85,12 @@ export async function selectProvider(forcePrompt = false): Promise<Provider> {
 
   // Interactive selection
   if (!forcePrompt) {
-    console.log(chalk.bold('\nWelcome to open-cli!\n'));
+    console.log(chalk.bold("\nWelcome to open-cli!\n"));
   }
 
   const choices = getProviderChoices();
   const providerName = await select({
-    message: 'Select a provider:',
+    message: "Select a provider:",
     choices,
   });
 
@@ -71,7 +99,7 @@ export async function selectProvider(forcePrompt = false): Promise<Provider> {
 
   // Ask to save as default
   const saveDefault = await confirm({
-    message: 'Save as default provider?',
+    message: "Save as default provider?",
     default: true,
   });
 
@@ -82,12 +110,19 @@ export async function selectProvider(forcePrompt = false): Promise<Provider> {
   return provider;
 }
 
-export async function selectModel(provider: Provider, forcePrompt = false): Promise<string> {
+export async function selectModel(
+  provider: Provider,
+  forcePrompt = false,
+): Promise<string> {
   const defaultModel = getDefaultModel();
   const models = provider.listModels();
 
   // If default model exists for this provider, use it (unless force prompt)
-  if (!forcePrompt && defaultModel && models.find(m => m.id === defaultModel)) {
+  if (
+    !forcePrompt &&
+    defaultModel &&
+    models.find((m) => m.id === defaultModel)
+  ) {
     return defaultModel;
   }
 
@@ -97,15 +132,15 @@ export async function selectModel(provider: Provider, forcePrompt = false): Prom
   }
 
   const modelId = await select({
-    message: 'Select a model:',
-    choices: models.map(m => ({
+    message: "Select a model:",
+    choices: models.map((m) => ({
       name: `${m.name} (${m.contextWindow.toLocaleString()} tokens)`,
       value: m.id,
     })),
   });
 
   const saveDefault = await confirm({
-    message: 'Save as default model?',
+    message: "Save as default model?",
     default: true,
   });
 
