@@ -69,6 +69,6 @@ export function setMCPServer(
 
 export function removeMCPServer(name: string): void {
   const servers = getMCPServers();
-  delete servers[name];
-  config.set("mcpServers", servers);
+  const { [name]: _, ...rest } = servers;
+  config.set("mcpServers", rest);
 }
