@@ -52,7 +52,7 @@ export async function runHeadless(
     try {
       for await (const chunk of provider.chat(messages, {
         temperature: 0.7,
-        systemPrompt: getSystemPrompt(),
+        systemPrompt: await getSystemPrompt(),
         tools: TOOL_DEFINITIONS,
       })) {
         response += chunk.content;

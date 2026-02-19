@@ -173,7 +173,7 @@ async function chatWithTools(state: ChatState): Promise<void> {
     try {
       for await (const chunk of state.provider.chat(state.messages, {
         temperature: 0.7,
-        systemPrompt: getSystemPrompt(),
+        systemPrompt: await getSystemPrompt(),
         tools: TOOL_DEFINITIONS,
       })) {
         streamWrite(chunk.content);

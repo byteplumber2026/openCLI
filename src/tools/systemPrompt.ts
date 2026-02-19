@@ -1,4 +1,13 @@
-export function getSystemPrompt(): string {
+import {
+  loadHierarchicalMemory,
+  formatMemoryForPrompt,
+} from "../context/memory.js";
+
+export async function getSystemPrompt(): Promise<string> {
+  const memories = await loadHierarchicalMemory(process.cwd());
+  const memorySection =
+    memories.length > 0 ? formatMemoryForPrompt(memories) : "";
+
   return `You are a helpful coding assistant with access to tools for file and shell operations.
 
 ## Available Tools
@@ -19,6 +28,6 @@ export function getSystemPrompt(): string {
 
 ## Working Directory
 Current directory: ${process.cwd()}
-
+${memorySection ? `\n${memorySection}\n` : ""}
 When the user asks you to perform tasks, use the available tools. For reading files, modifying code, running tests, or executing commands - use the tools rather than just describing what to do.`;
 }
