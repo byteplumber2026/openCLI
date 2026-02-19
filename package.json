@@ -26,9 +26,11 @@
     "conf": "^13.0.0",
     "fast-glob": "^3.3.0",
     "ignore": "^7.0.5",
+    "js-tiktoken": "^1.0.21",
     "marked": "^15.0.0",
     "marked-terminal": "^7.0.0",
-    "openai": "^4.0.0"
+    "openai": "^4.0.0",
+    "pino": "^10.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
