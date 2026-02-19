@@ -9,6 +9,12 @@ import {
   appendToGlobalMemory,
   formatMemoryForPrompt,
 } from "../context/memory.js";
+import {
+  saveSession,
+  loadSession,
+  listSessions,
+  deleteSession,
+} from "../session/store.js";
 
 export interface Command {
   name: string;
@@ -46,6 +52,10 @@ ${chalk.bold("Available Commands:")}
   /provider   Switch to a different provider
   /memory     Manage context memory (show, add, list, refresh)
   /file       Add file to context (e.g., /file src/index.ts)
+  /chat save <tag>   Save current conversation
+  /chat list         List saved sessions
+  /chat resume <tag> Resume a saved session
+  /chat delete <tag> Delete a saved session
   /styles     Change terminal color theme
   /clear      Clear conversation history
   /help       Show this help message
@@ -175,6 +185,94 @@ export async function handleCommand(
 
         default:
           console.log(chalk.yellow("Usage: /memory [show|add|list|refresh]"));
+          return { action: "continue", state };
+      }
+    }
+
+    case "chat": {
+      const subCommand = command.args.split(" ")[0] || "list";
+      const restArgs = command.args.slice(subCommand.length).trim();
+
+      switch (subCommand) {
+        case "save": {
+          if (!restArgs) {
+            console.log(chalk.yellow("Usage: /chat save <tag>"));
+            return { action: "continue", state };
+          }
+
+          const session = await saveSession(
+            restArgs,
+            state.messages,
+            state.provider.name,
+            state.model,
+            process.cwd(),
+          );
+          console.log(chalk.dim(`Session saved: ${session.tag}`));
+          return { action: "continue", state };
+        }
+
+        case "list": {
+          const sessions = await listSessions(process.cwd());
+          if (sessions.length === 0) {
+            console.log(chalk.dim("No saved sessions."));
+          } else {
+            console.log(chalk.bold("\nSaved Sessions:"));
+            sessions.forEach((s) => {
+              console.log(
+                `  ${chalk.cyan(s.tag)} - ${s.messageCount} messages, ${s.model}`,
+              );
+              console.log(
+                `    Updated: ${new Date(s.updatedAt).toLocaleString()}`,
+              );
+            });
+          }
+          return { action: "continue", state };
+        }
+
+        case "resume": {
+          if (!restArgs) {
+            console.log(chalk.yellow("Usage: /chat resume <tag>"));
+            return { action: "continue", state };
+          }
+
+          const session = await loadSession(restArgs, process.cwd());
+          if (!session) {
+            console.log(chalk.red(`Session not found: ${restArgs}`));
+            return { action: "continue", state };
+          }
+
+          console.log(
+            chalk.dim(
+              `Resumed session: ${session.tag} (${session.messages.length} messages)`,
+            ),
+          );
+          return {
+            action: "continue",
+            state: {
+              ...state,
+              messages: session.messages,
+              model: session.model,
+            },
+          };
+        }
+
+        case "delete": {
+          if (!restArgs) {
+            console.log(chalk.yellow("Usage: /chat delete <tag>"));
+            return { action: "continue", state };
+          }
+
+          const deleted = await deleteSession(restArgs, process.cwd());
+          if (deleted) {
+            console.log(chalk.dim(`Session deleted: ${restArgs}`));
+          } else {
+            console.log(chalk.red(`Session not found: ${restArgs}`));
+          }
+          return { action: "continue", state };
+        }
+
+        default:
+          console.log(chalk.yellow("Usage: /chat [save|list|resume|delete]"));
           return { action: "continue", state };
       }
     }
