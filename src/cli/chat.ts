@@ -1,13 +1,69 @@
 // src/cli/chat.ts
-import * as readline from 'readline';
-import chalk from 'chalk';
-import type { Provider, Message } from '../providers/types.js';
-import { formatPrompt, streamWrite } from './renderer.js';
-import { isCommand, parseCommand, handleCommand, type ChatState } from './commands.js';
-import { buildFileContext } from '../context/files.js';
-import { TOOL_DEFINITIONS, executeTool, getSystemPrompt } from '../tools/index.js';
+import * as readline from "readline";
+import chalk from "chalk";
+import type { Provider, Message } from "../providers/types.js";
+import { formatPrompt, streamWrite } from "./renderer.js";
+import {
+  isCommand,
+  parseCommand,
+  handleCommand,
+  type ChatState,
+} from "./commands.js";
+import { buildFileContext } from "../context/files.js";
+import {
+  TOOL_DEFINITIONS,
+  executeTool,
+  getSystemPrompt,
+} from "../tools/index.js";
+import {
+  isShellPassthrough,
+  isShellModeToggle,
+  executeShellPassthrough,
+  formatShellOutput,
+} from "./shell-passthrough.js";
 
-export async function startChat(provider: Provider, model: string): Promise<void> {
+async function runShellMode(): Promise<void> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.on("SIGINT", () => {
+      rl.close();
+      resolve();
+    });
+
+    rl.on("line", async (input) => {
+      const trimmed = input.trim();
+      if (!trimmed) {
+        rl.close();
+        resolve();
+        return;
+      }
+
+      try {
+        const result = await executeShellPassthrough(trimmed);
+        console.log(formatShellOutput(result));
+      } catch (error) {
+        console.log(chalk.red(`Error: ${error}`));
+      }
+
+      process.stdout.write("$ ");
+    });
+
+    rl.on("close", () => {
+      resolve();
+    });
+
+    process.stdout.write("$ ");
+  });
+}
+
+export async function startChat(
+  provider: Provider,
+  model: string,
+): Promise<void> {
   let state: ChatState = {
     provider,
     model,
@@ -15,11 +71,11 @@ export async function startChat(provider: Provider, model: string): Promise<void
   };
 
   // Set model on provider if supported
-  if ('setModel' in provider) {
+  if ("setModel" in provider) {
     (provider as any).setModel(model);
   }
 
-  console.log(chalk.dim('\nType /help for commands, /exit to quit.\n'));
+  console.log(chalk.dim("\nType /help for commands, /exit to quit.\n"));
 
   const createReadline = () => {
     const rl = readline.createInterface({
@@ -27,8 +83,8 @@ export async function startChat(provider: Provider, model: string): Promise<void
       output: process.stdout,
     });
 
-    rl.on('SIGINT', () => {
-      console.log(chalk.dim('\nGoodbye!'));
+    rl.on("SIGINT", () => {
+      console.log(chalk.dim("\nGoodbye!"));
       rl.close();
       process.exit(0);
     });
@@ -41,15 +97,38 @@ export async function startChat(provider: Provider, model: string): Promise<void
       const rl = createReadline();
 
       const input = await new Promise<string>((resolve) => {
-        rl.question(formatPrompt(state.provider.name, state.model), (answer) => {
-          rl.close();
-          resolve(answer);
-        });
+        rl.question(
+          formatPrompt(state.provider.name, state.model),
+          (answer) => {
+            rl.close();
+            resolve(answer);
+          },
+        );
       });
 
       const trimmed = input.trim();
 
       if (!trimmed) {
+        continue;
+      }
+
+      // Handle shell passthrough
+      if (isShellModeToggle(trimmed)) {
+        console.log(
+          chalk.yellow(
+            "\nShell mode: ON (type commands directly, empty line to exit)",
+          ),
+        );
+        await runShellMode();
+        console.log(chalk.yellow("\nShell mode: OFF"));
+        continue;
+      }
+
+      if (isShellPassthrough(trimmed)) {
+        const command = trimmed.slice(1).trim();
+        console.log(chalk.dim(`\n$ ${command}`));
+        const result = await executeShellPassthrough(command);
+        console.log(formatShellOutput(result));
         continue;
       }
 
@@ -59,7 +138,7 @@ export async function startChat(provider: Provider, model: string): Promise<void
         const result = await handleCommand(command, state);
         state = result.state;
 
-        if (result.action === 'exit') {
+        if (result.action === "exit") {
           return;
         }
 
@@ -70,7 +149,7 @@ export async function startChat(provider: Provider, model: string): Promise<void
       const { context, cleanInput } = await buildFileContext(trimmed);
       const userContent = context ? `${context}\n\n${cleanInput}` : cleanInput;
 
-      state.messages.push({ role: 'user', content: userContent });
+      state.messages.push({ role: "user", content: userContent });
 
       // Chat with tool loop
       await chatWithTools(state);
@@ -88,7 +167,7 @@ async function chatWithTools(state: ChatState): Promise<void> {
     iterations++;
     console.log();
 
-    let fullResponse = '';
+    let fullResponse = "";
     let toolCalls: any[] | undefined;
 
     try {
@@ -104,7 +183,7 @@ async function chatWithTools(state: ChatState): Promise<void> {
         }
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
       console.log(chalk.red(`\nError: ${errorMsg}`));
       state.messages.pop();
       return;
@@ -112,19 +191,23 @@ async function chatWithTools(state: ChatState): Promise<void> {
 
     // If no tool calls, we're done
     if (!toolCalls || toolCalls.length === 0) {
-      console.log('\n');
-      state.messages.push({ role: 'assistant', content: fullResponse });
+      console.log("\n");
+      state.messages.push({ role: "assistant", content: fullResponse });
       return;
     }
 
     // Add assistant message with tool calls
-    state.messages.push({ role: 'assistant', content: fullResponse, toolCalls });
+    state.messages.push({
+      role: "assistant",
+      content: fullResponse,
+      toolCalls,
+    });
 
     // Execute each tool call
     for (const call of toolCalls) {
       const result = await executeTool(call);
       state.messages.push({
-        role: 'tool',
+        role: "tool",
         content: result.result,
         toolCallId: call.id,
       });
@@ -133,5 +216,5 @@ async function chatWithTools(state: ChatState): Promise<void> {
     // Loop continues - LLM will process tool results
   }
 
-  console.log(chalk.yellow('\nMax tool iterations reached'));
+  console.log(chalk.yellow("\nMax tool iterations reached"));
 }
