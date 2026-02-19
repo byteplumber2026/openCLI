@@ -19,8 +19,10 @@ function getSessionDir(projectHash: string): string {
 }
 
 function validateTag(tag: string): void {
-  if (tag.includes("/") || tag.includes("\\")) {
-    throw new Error("Invalid tag: cannot contain path separators");
+  if (!/^[a-zA-Z0-9_-]+$/.test(tag)) {
+    throw new Error(
+      "Invalid tag: must be alphanumeric with hyphens/underscores only",
+    );
   }
 }
 

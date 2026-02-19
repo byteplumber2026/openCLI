@@ -200,31 +200,47 @@ export async function handleCommand(
             return { action: "continue", state };
           }
 
-          const session = await saveSession(
-            restArgs,
-            state.messages,
-            state.provider.name,
-            state.model,
-            process.cwd(),
-          );
-          console.log(chalk.dim(`Session saved: ${session.tag}`));
+          try {
+            const session = await saveSession(
+              restArgs,
+              state.messages,
+              state.provider.name,
+              state.model,
+              process.cwd(),
+            );
+            console.log(chalk.dim(`Session saved: ${session.tag}`));
+          } catch (error) {
+            console.log(
+              chalk.red(
+                `Failed to save session: ${error instanceof Error ? error.message : String(error)}`,
+              ),
+            );
+          }
           return { action: "continue", state };
         }
 
         case "list": {
-          const sessions = await listSessions(process.cwd());
-          if (sessions.length === 0) {
-            console.log(chalk.dim("No saved sessions."));
-          } else {
-            console.log(chalk.bold("\nSaved Sessions:"));
-            sessions.forEach((s) => {
-              console.log(
-                `  ${chalk.cyan(s.tag)} - ${s.messageCount} messages, ${s.model}`,
-              );
-              console.log(
-                `    Updated: ${new Date(s.updatedAt).toLocaleString()}`,
-              );
-            });
+          try {
+            const sessions = await listSessions(process.cwd());
+            if (sessions.length === 0) {
+              console.log(chalk.dim("No saved sessions."));
+            } else {
+              console.log(chalk.bold("\nSaved Sessions:"));
+              sessions.forEach((s) => {
+                console.log(
+                  `  ${chalk.cyan(s.tag)} - ${s.messageCount} messages, ${s.model}`,
+                );
+                console.log(
+                  `    Updated: ${new Date(s.updatedAt).toLocaleString()}`,
+                );
+              });
+            }
+          } catch (error) {
+            console.log(
+              chalk.red(
+                `Failed to list sessions: ${error instanceof Error ? error.message : String(error)}`,
+              ),
+            );
           }
           return { action: "continue", state };
         }
@@ -235,25 +251,34 @@ export async function handleCommand(
             return { action: "continue", state };
           }
 
-          const session = await loadSession(restArgs, process.cwd());
-          if (!session) {
-            console.log(chalk.red(`Session not found: ${restArgs}`));
+          try {
+            const session = await loadSession(restArgs, process.cwd());
+            if (!session) {
+              console.log(chalk.red(`Session not found: ${restArgs}`));
+              return { action: "continue", state };
+            }
+
+            console.log(
+              chalk.dim(
+                `Resumed session: ${session.tag} (${session.messages.length} messages)`,
+              ),
+            );
+            return {
+              action: "continue",
+              state: {
+                ...state,
+                messages: session.messages,
+                model: session.model,
+              },
+            };
+          } catch (error) {
+            console.log(
+              chalk.red(
+                `Failed to resume session: ${error instanceof Error ? error.message : String(error)}`,
+              ),
+            );
             return { action: "continue", state };
           }
-
-          console.log(
-            chalk.dim(
-              `Resumed session: ${session.tag} (${session.messages.length} messages)`,
-            ),
-          );
-          return {
-            action: "continue",
-            state: {
-              ...state,
-              messages: session.messages,
-              model: session.model,
-            },
-          };
         }
 
         case "delete": {
@@ -262,11 +287,19 @@ export async function handleCommand(
             return { action: "continue", state };
           }
 
-          const deleted = await deleteSession(restArgs, process.cwd());
-          if (deleted) {
-            console.log(chalk.dim(`Session deleted: ${restArgs}`));
-          } else {
-            console.log(chalk.red(`Session not found: ${restArgs}`));
+          try {
+            const deleted = await deleteSession(restArgs, process.cwd());
+            if (deleted) {
+              console.log(chalk.dim(`Session deleted: ${restArgs}`));
+            } else {
+              console.log(chalk.red(`Session not found: ${restArgs}`));
+            }
+          } catch (error) {
+            console.log(
+              chalk.red(
+                `Failed to delete session: ${error instanceof Error ? error.message : String(error)}`,
+              ),
+            );
           }
           return { action: "continue", state };
         }
