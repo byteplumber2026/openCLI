@@ -659,6 +659,16 @@ Each feature requires:
 
 ## Implementation Log
 
-| Date | Feature | Status | Notes |
-| ---- | ------- | ------ | ----- |
-|      |         |        |       |
+| Date       | Feature                          | Status | Notes                                              |
+| ---------- | -------------------------------- | ------ | -------------------------------------------------- |
+| 2026-02-19 | 1.1 Headless Mode                | Done   | -p flag, --output-format json/stream-json           |
+| 2026-02-19 | 1.2 Enhanced @ File Inclusion    | Done   | Dirs, globs, .gitignore filtering                   |
+| 2026-02-19 | 1.3 Shell Passthrough            | Done   | !command syntax and shell mode toggle               |
+| 2026-02-19 | 1.4 AGENTS.md Context System     | Done   | Hierarchical global/project/jit memory              |
+| 2026-02-19 | 2.1 Session Checkpointing        | Done   | save/list/resume/delete with project hashing        |
+| 2026-02-19 | 2.2 MCP Server Support           | Done   | Client, registry, stdio transport                   |
+| 2026-02-19 | 2.3 Custom Commands              | Done   | TOML loader with {{args}} replacement               |
+| 2026-02-19 | 2.4 /stats, /copy, /export       | Done   | Session stats, clipboard copy, md/json export       |
+| 2026-02-19 | 2.4 /about, /tools, /compress    | Done   | Version info, tool listing, context compression     |
+| 2026-02-19 | 3.1 JSON Output Mode             | Done   | text/json/stream-json in headless mode              |
+| 2026-02-19 | 3.2 Token Caching                | Done   | mtime-based file cache, system prompt cache         |

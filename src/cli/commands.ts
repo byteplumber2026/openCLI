@@ -1,6 +1,8 @@
 // src/cli/commands.ts
 import chalk from "chalk";
 import { select } from "@inquirer/prompts";
+import { writeFile } from "fs/promises";
+import clipboardy from "clipboardy";
 import type { Provider, Message } from "../providers/types.js";
 import { selectModel, selectProvider } from "./prompt.js";
 import { setStyles, getStyles } from "../config/settings.js";
@@ -17,8 +19,16 @@ import {
   listSessions,
   deleteSession,
 } from "../session/store.js";
+import { exportToMarkdown, exportToJSON } from "../session/export.js";
 import { loadCommands } from "../commands/loader.js";
 import { executeCustomCommand } from "../commands/executor.js";
+import { calculateStats, formatStats } from "./stats.js";
+import { TOOL_DEFINITIONS } from "../tools/definitions.js";
+import { clearFileCache } from "../context/cache.js";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const { version: APP_VERSION } = require("../../package.json");
 
 export interface Command {
   name: string;
@@ -62,6 +72,13 @@ ${chalk.bold("Available Commands:")}
   /chat list         List saved sessions
   /chat resume <tag> Resume a saved session
   /chat delete <tag> Delete a saved session
+  /stats      Show session statistics
+  /export md|json [file]  Export conversation (to file or clipboard)
+  /copy       Copy last response to clipboard
+  /compress   Summarize conversation to save tokens
+  /tools      List available tools
+  /tools desc Show detailed tool descriptions
+  /about      Show version and session info
   /commands list    List custom commands
   /commands reload Reload custom commands
   /styles     Change terminal color theme
@@ -195,6 +212,7 @@ export async function handleCommand(
         }
 
         case "refresh":
+          clearFileCache();
           console.log(chalk.dim("Memory refreshed."));
           return { action: "continue", state };
 
@@ -401,6 +419,210 @@ export async function handleCommand(
           console.log(chalk.yellow("Usage: /commands [list|reload]"));
           return { action: "continue", state };
       }
+    }
+
+    case "stats": {
+      if (state.messages.length === 0) {
+        console.log(chalk.dim("No messages in current session."));
+        return { action: "continue", state };
+      }
+
+      const stats = calculateStats(state.messages);
+      console.log(chalk.bold("\nSession Statistics:"));
+      console.log(formatStats(stats));
+      return { action: "continue", state };
+    }
+
+    case "export": {
+      if (state.messages.length === 0) {
+        console.log(chalk.dim("No messages to export."));
+        return { action: "continue", state };
+      }
+
+      const parts = command.args.split(" ");
+      const format = parts[0] || "md";
+      const filePath = parts[1];
+
+      if (format !== "md" && format !== "json") {
+        console.log(chalk.yellow("Usage: /export md|json [file]"));
+        return { action: "continue", state };
+      }
+
+      const session = {
+        id: "export",
+        tag: "export",
+        messages: state.messages,
+        provider: state.provider.name,
+        model: state.model,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        projectHash: "",
+      };
+
+      const content =
+        format === "md"
+          ? exportToMarkdown(session)
+          : exportToJSON(session);
+
+      if (filePath) {
+        try {
+          await writeFile(filePath, content, "utf-8");
+          console.log(chalk.dim(`Exported to ${filePath}`));
+        } catch (error) {
+          console.log(
+            chalk.red(
+              `Failed to write file: ${error instanceof Error ? error.message : String(error)}`,
+            ),
+          );
+        }
+      } else {
+        try {
+          await clipboardy.write(content);
+          console.log(chalk.dim(`Exported ${format} to clipboard.`));
+        } catch {
+          console.log(content);
+        }
+      }
+      return { action: "continue", state };
+    }
+
+    case "copy": {
+      const lastAssistant = [...state.messages]
+        .reverse()
+        .find((m) => m.role === "assistant");
+
+      if (!lastAssistant) {
+        console.log(chalk.dim("No assistant response to copy."));
+        return { action: "continue", state };
+      }
+
+      try {
+        await clipboardy.write(lastAssistant.content);
+        console.log(chalk.dim("Last response copied to clipboard."));
+      } catch (error) {
+        console.log(
+          chalk.red(
+            `Failed to copy: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        );
+      }
+      return { action: "continue", state };
+    }
+
+    case "about": {
+      console.log(
+        [
+          "",
+          `${chalk.bold("open-cli")} v${APP_VERSION}`,
+          `Provider: ${state.provider.name}`,
+          `Model: ${state.model}`,
+          `Node: ${process.version}`,
+          `Platform: ${process.platform} ${process.arch}`,
+          "",
+        ].join("\n"),
+      );
+      return { action: "continue", state };
+    }
+
+    case "tools": {
+      const subCommand = command.args.split(" ")[0] || "list";
+      const showDesc = subCommand === "desc";
+
+      console.log(chalk.bold("\nBuilt-in Tools:"));
+      for (const tool of TOOL_DEFINITIONS) {
+        if (showDesc) {
+          console.log(`  ${chalk.cyan(tool.name)}`);
+          console.log(`    ${tool.description}`);
+          const params = tool.parameters as { required?: string[]; properties?: Record<string, { description?: string }> };
+          if (params.properties) {
+            for (const [key, val] of Object.entries(params.properties)) {
+              const req = params.required?.includes(key) ? " (required)" : "";
+              console.log(
+                `    ${chalk.dim(`- ${key}${req}`)}: ${val.description || ""}`,
+              );
+            }
+          }
+        } else {
+          console.log(`  ${chalk.cyan(tool.name)} - ${tool.description}`);
+        }
+      }
+
+      const mcpTools = mcpRegistry.getTools();
+      if (mcpTools.length > 0) {
+        console.log(chalk.bold("\nMCP Tools:"));
+        for (const tool of mcpTools) {
+          if (showDesc) {
+            console.log(`  ${chalk.cyan(tool.name)} ${chalk.dim(`[${tool.serverName}]`)}`);
+            console.log(`    ${tool.description}`);
+          } else {
+            console.log(
+              `  ${chalk.cyan(tool.name)} - ${tool.description.slice(0, 60)}${tool.description.length > 60 ? "..." : ""}`,
+            );
+          }
+        }
+      }
+
+      console.log("");
+      return { action: "continue", state };
+    }
+
+    case "compress": {
+      if (state.messages.length < 4) {
+        console.log(chalk.dim("Not enough messages to compress."));
+        return { action: "continue", state };
+      }
+
+      console.log(chalk.dim("Compressing conversation..."));
+
+      const summaryPrompt: Message[] = [
+        {
+          role: "user",
+          content: [
+            "Summarize the following conversation concisely. Preserve key decisions, code snippets, and action items. Output only the summary, no preamble.",
+            "",
+            ...state.messages.map(
+              (m) => `[${m.role}]: ${m.content.slice(0, 2000)}`,
+            ),
+          ].join("\n"),
+        },
+      ];
+
+      let summary = "";
+      try {
+        for await (const chunk of state.provider.chat(summaryPrompt, {
+          maxTokens: 1024,
+        })) {
+          summary += chunk.content;
+          if (chunk.done) break;
+        }
+      } catch (error) {
+        console.log(
+          chalk.red(
+            `Failed to compress: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        );
+        return { action: "continue", state };
+      }
+
+      const beforeCount = state.messages.length;
+      const compressedMessages: Message[] = [
+        {
+          role: "user",
+          content: "Here is a summary of our prior conversation:\n\n" + summary,
+        },
+        {
+          role: "assistant",
+          content: "Understood. I have the context from our previous conversation. How can I help?",
+        },
+      ];
+
+      console.log(
+        chalk.dim(`Compressed ${beforeCount} messages down to 2 (summary).`),
+      );
+      return {
+        action: "continue",
+        state: { ...state, messages: compressedMessages },
+      };
     }
 
     default: {

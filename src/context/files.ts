@@ -2,6 +2,7 @@ import { readFile, stat, readdir } from "fs/promises";
 import { extname, resolve, join, relative } from "path";
 import fg from "fast-glob";
 import { createIgnoreFilter } from "./gitignore.js";
+import { readFileCached } from "./cache.js";
 
 const MAX_FILE_SIZE = 100 * 1024; // 100KB
 const MAX_TOTAL_SIZE = 500 * 1024; // 500KB total
@@ -70,12 +71,12 @@ export async function readFileContext(filePath: string): Promise<string> {
   const stats = await stat(absolutePath);
 
   if (stats.size > MAX_FILE_SIZE) {
-    const content = await readFile(absolutePath, "utf-8");
+    const content = await readFileCached(absolutePath);
     const truncated = content.slice(0, MAX_FILE_SIZE);
     return `${truncated}\n\n[File truncated - exceeded ${MAX_FILE_SIZE / 1024}KB limit]`;
   }
 
-  return readFile(absolutePath, "utf-8");
+  return readFileCached(absolutePath);
 }
 
 export function formatFileContext(filePath: string, content: string): string {

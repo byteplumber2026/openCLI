@@ -2,7 +2,7 @@ import { readFile, access, appendFile, mkdir } from "fs/promises";
 import { join, dirname } from "path";
 import { homedir } from "os";
 import { constants } from "fs";
-import { fileURLToPath } from "url";
+import { readFileCached, invalidateFile } from "./cache.js";
 
 export const AGENTS_MD_NAMES = ["AGENTS.md", "CONTEXT.md", ".agents.md"];
 
@@ -53,9 +53,9 @@ export async function loadHierarchicalMemory(
 ): Promise<MemoryFile[]> {
   const memories: MemoryFile[] = [];
 
-  // Load global memory
+  // Load global memory (cached)
   if (await fileExists(GLOBAL_AGENTS_MD)) {
-    const content = await readFile(GLOBAL_AGENTS_MD, "utf-8");
+    const content = await readFileCached(GLOBAL_AGENTS_MD);
     memories.push({
       path: GLOBAL_AGENTS_MD,
       content: content.trim(),
@@ -63,11 +63,11 @@ export async function loadHierarchicalMemory(
     });
   }
 
-  // Load project-level memory (from cwd up to root)
+  // Load project-level memory (from cwd up to root, cached)
   const projectFiles = await findAgentsMdFiles(cwd);
 
   for (const filePath of projectFiles) {
-    const content = await readFile(filePath, "utf-8");
+    const content = await readFileCached(filePath);
     memories.push({
       path: filePath,
       content: content.trim(),
@@ -93,6 +93,9 @@ export async function appendToGlobalMemory(text: string): Promise<void> {
     const { writeFile } = await import("fs/promises");
     await writeFile(GLOBAL_AGENTS_MD, `# Global Context\n\n${text}\n`);
   }
+
+  // Invalidate cache so next load picks up the change
+  invalidateFile(GLOBAL_AGENTS_MD);
 }
 
 export function formatMemoryForPrompt(memories: MemoryFile[]): string {
