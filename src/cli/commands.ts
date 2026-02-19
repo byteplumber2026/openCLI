@@ -9,6 +9,8 @@ import {
   appendToGlobalMemory,
   formatMemoryForPrompt,
 } from "../context/memory.js";
+import { mcpRegistry } from "../mcp/registry.js";
+import { getMCPServers } from "../config/settings.js";
 import {
   saveSession,
   loadSession,
@@ -51,6 +53,8 @@ ${chalk.bold("Available Commands:")}
   /models     Switch to a different model
   /provider   Switch to a different provider
   /memory     Manage context memory (show, add, list, refresh)
+  /mcp              List MCP servers and tools
+  /mcp refresh      Reconnect to MCP servers
   /file       Add file to context (e.g., /file src/index.ts)
   /chat save <tag>   Save current conversation
   /chat list         List saved sessions
@@ -306,6 +310,55 @@ export async function handleCommand(
 
         default:
           console.log(chalk.yellow("Usage: /chat [save|list|resume|delete]"));
+          return { action: "continue", state };
+      }
+    }
+
+    case "mcp": {
+      const subCommand = command.args.split(" ")[0] || "list";
+
+      switch (subCommand) {
+        case "list":
+        case "": {
+          const servers = mcpRegistry.listServers();
+          if (servers.length === 0) {
+            console.log(chalk.dim("No MCP servers connected."));
+            console.log(chalk.dim("Configure servers in settings.json"));
+          } else {
+            console.log(chalk.bold("\nMCP Servers:"));
+            for (const server of servers) {
+              console.log(
+                `  ${chalk.cyan(server.name)} - ${server.toolCount} tools`,
+              );
+            }
+
+            const tools = mcpRegistry.getTools();
+            if (tools.length > 0) {
+              console.log(chalk.bold("\nAvailable Tools:"));
+              for (const tool of tools.slice(0, 20)) {
+                console.log(
+                  `  ${chalk.dim(tool.name)} - ${tool.description.slice(0, 60)}...`,
+                );
+              }
+              if (tools.length > 20) {
+                console.log(chalk.dim(`  ... and ${tools.length - 20} more`));
+              }
+            }
+          }
+          return { action: "continue", state };
+        }
+
+        case "refresh": {
+          console.log(chalk.dim("Reconnecting to MCP servers..."));
+          const configs = getMCPServers();
+          await mcpRegistry.connectServers(configs);
+          const servers = mcpRegistry.listServers();
+          console.log(chalk.dim(`Connected to ${servers.length} MCP servers`));
+          return { action: "continue", state };
+        }
+
+        default:
+          console.log(chalk.yellow("Usage: /mcp [list|refresh]"));
           return { action: "continue", state };
       }
     }
