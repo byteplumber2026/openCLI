@@ -17,6 +17,8 @@ import {
   listSessions,
   deleteSession,
 } from "../session/store.js";
+import { loadCommands } from "../commands/loader.js";
+import { executeCustomCommand } from "../commands/executor.js";
 
 export interface Command {
   name: string;
@@ -60,10 +62,16 @@ ${chalk.bold("Available Commands:")}
   /chat list         List saved sessions
   /chat resume <tag> Resume a saved session
   /chat delete <tag> Delete a saved session
+  /commands list    List custom commands
+  /commands reload Reload custom commands
   /styles     Change terminal color theme
   /clear      Clear conversation history
   /help       Show this help message
   /exit       Exit open-cli
+
+${chalk.bold("Custom Commands:")}
+
+  /<custom>        Execute a custom command (e.g., /review)
 
 ${chalk.bold("File Context:")}
 
@@ -80,7 +88,10 @@ ${chalk.bold("Shell Passthrough:")}
 export async function handleCommand(
   command: Command,
   state: ChatState,
-): Promise<{ action: "continue" | "exit"; state: ChatState }> {
+): Promise<{
+  action: "continue" | "exit" | "custom_command";
+  state: ChatState;
+}> {
   switch (command.name) {
     case "help":
       console.log(HELP_TEXT);
@@ -363,9 +374,47 @@ export async function handleCommand(
       }
     }
 
-    default:
+    case "commands": {
+      const subCommand = command.args.split(" ")[0] || "list";
+
+      switch (subCommand) {
+        case "list":
+        case "": {
+          const commands = await loadCommands();
+          if (commands.size === 0) {
+            console.log(chalk.dim("No custom commands found."));
+            console.log(chalk.dim(`Add TOML files to ~/.open-cli/commands/`));
+          } else {
+            console.log(chalk.bold("\nCustom Commands:"));
+            for (const [name, cmd] of commands) {
+              console.log(`  /${chalk.cyan(name)} - ${cmd.description}`);
+            }
+          }
+          return { action: "continue", state };
+        }
+
+        case "reload":
+          console.log(chalk.dim("Custom commands reloaded."));
+          return { action: "continue", state };
+
+        default:
+          console.log(chalk.yellow("Usage: /commands [list|reload]"));
+          return { action: "continue", state };
+      }
+    }
+
+    default: {
+      const customCommands = await loadCommands();
+      if (customCommands.has(command.name)) {
+        const customCmd = customCommands.get(command.name)!;
+        const prompt = await executeCustomCommand(customCmd, command.args);
+        state.messages.push({ role: "user", content: prompt });
+        return { action: "custom_command", state };
+      }
+
       console.log(chalk.yellow(`Unknown command: /${command.name}`));
       console.log(chalk.dim("Type /help for available commands."));
       return { action: "continue", state };
+    }
   }
 }

@@ -142,6 +142,10 @@ export async function startChat(
           return;
         }
 
+        if (result.action === "custom_command") {
+          await chatWithTools(state);
+        }
+
         continue;
       }
 
