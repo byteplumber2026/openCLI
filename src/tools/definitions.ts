@@ -1,76 +1,115 @@
-import type { ToolDefinition } from './types.js';
+import type { ToolDefinition } from "./types.js";
 
 export const TOOL_DEFINITIONS: ToolDefinition[] = [
   {
-    name: 'shell_run',
-    description: 'Execute a shell command and return the output',
+    name: "shell_run",
+    description: "Execute a shell command and return the output",
     parameters: {
-      type: 'object',
+      type: "object",
       properties: {
-        command: { type: 'string', description: 'The shell command to execute' },
-        workdir: { type: 'string', description: 'Working directory (optional)' },
+        command: {
+          type: "string",
+          description: "The shell command to execute",
+        },
+        workdir: {
+          type: "string",
+          description: "Working directory (optional)",
+        },
       },
-      required: ['command'],
+      required: ["command"],
     },
   },
   {
-    name: 'file_read',
-    description: 'Read the contents of a file',
+    name: "file_read",
+    description: "Read the contents of a file",
     parameters: {
-      type: 'object',
+      type: "object",
       properties: {
-        path: { type: 'string', description: 'Path to the file to read' },
+        path: { type: "string", description: "Path to the file to read" },
       },
-      required: ['path'],
+      required: ["path"],
     },
   },
   {
-    name: 'file_write',
-    description: 'Write content to a file (creates or overwrites)',
+    name: "file_write",
+    description: "Write content to a file (creates or overwrites)",
     parameters: {
-      type: 'object',
+      type: "object",
       properties: {
-        path: { type: 'string', description: 'Path to the file to write' },
-        content: { type: 'string', description: 'Content to write to the file' },
+        path: { type: "string", description: "Path to the file to write" },
+        content: {
+          type: "string",
+          description: "Content to write to the file",
+        },
       },
-      required: ['path', 'content'],
+      required: ["path", "content"],
     },
   },
   {
-    name: 'file_list',
-    description: 'List files and directories in a path',
+    name: "file_list",
+    description: "List files and directories in a path",
     parameters: {
-      type: 'object',
+      type: "object",
       properties: {
-        path: { type: 'string', description: 'Directory path to list' },
-        recursive: { type: 'boolean', description: 'Include subdirectories' },
+        path: { type: "string", description: "Directory path to list" },
+        recursive: { type: "boolean", description: "Include subdirectories" },
       },
-      required: ['path'],
+      required: ["path"],
     },
   },
   {
-    name: 'file_search',
-    description: 'Search for a text pattern in files',
+    name: "file_search",
+    description: "Search for a text pattern in files",
     parameters: {
-      type: 'object',
+      type: "object",
       properties: {
-        pattern: { type: 'string', description: 'Regex pattern to search for' },
-        path: { type: 'string', description: 'Directory to search in' },
-        glob: { type: 'string', description: 'File pattern (e.g., "*.ts")' },
+        pattern: { type: "string", description: "Regex pattern to search for" },
+        path: { type: "string", description: "Directory to search in" },
+        glob: { type: "string", description: 'File pattern (e.g., "*.ts")' },
       },
-      required: ['pattern'],
+      required: ["pattern"],
     },
   },
   {
-    name: 'web_search',
-    description: 'Search the web for current information, news, or facts',
+    name: "web_search",
+    description: "Search the web for current information, news, or facts",
     parameters: {
-      type: 'object',
+      type: "object",
       properties: {
-        query: { type: 'string', description: 'Search query' },
-        count: { type: 'number', description: 'Number of results (1-10, default 5)' },
+        query: { type: "string", description: "Search query" },
+        count: {
+          type: "number",
+          description: "Number of results (1-10, default 5)",
+        },
       },
-      required: ['query'],
+      required: ["query"],
+    },
+  },
+  {
+    name: "http_request",
+    description: "Make an HTTP request to a URL",
+    parameters: {
+      type: "object",
+      properties: {
+        method: {
+          type: "string",
+          description: "HTTP method: GET, POST, PUT, DELETE, or PATCH",
+        },
+        url: { type: "string", description: "The URL to request" },
+        body: {
+          type: "object",
+          description: "JSON body for POST/PUT/PATCH requests",
+        },
+        headers: {
+          type: "object",
+          description: "HTTP headers as key-value pairs",
+        },
+        timeout: {
+          type: "number",
+          description: "Timeout in seconds (default 30)",
+        },
+      },
+      required: ["method", "url"],
     },
   },
 ];
