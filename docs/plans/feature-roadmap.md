@@ -574,6 +574,38 @@ Cache repeated context (AGENTS.md, file contexts) to reduce token usage.
 
 ---
 
+## Phase 4: Production Hardening
+
+### 4.1 Structured Logging & Debugging
+
+**Status:** Done
+
+- pino-based structured logger with silent/info/debug levels
+- --verbose and --debug CLI flags
+- API request/response tracing (provider, tokens, latency)
+- Tool execution tracing (name, args, duration, result size)
+
+### 4.2 Error Recovery & Retries
+
+**Status:** Done
+
+- Typed error classes (ProviderError, RateLimitError, NetworkError, AuthError)
+- Exponential backoff retry (3 attempts, 1s/2s/4s)
+- Respects Retry-After headers from rate limits
+- User feedback during retries, preserves message on failure
+
+### 4.3 Token Counting & Cost Tracking
+
+**Status:** Done
+
+- js-tiktoken for accurate OpenAI token counting
+- Character/4 fallback for non-OpenAI models
+- Per-session cost tracking with model pricing table
+- Context window usage warnings at >80%
+- Enhanced /stats with tokens, cost, and context window %
+
+---
+
 ## File Structure After Implementation
 
 ```
@@ -659,16 +691,19 @@ Each feature requires:
 
 ## Implementation Log
 
-| Date       | Feature                          | Status | Notes                                              |
-| ---------- | -------------------------------- | ------ | -------------------------------------------------- |
-| 2026-02-19 | 1.1 Headless Mode                | Done   | -p flag, --output-format json/stream-json           |
-| 2026-02-19 | 1.2 Enhanced @ File Inclusion    | Done   | Dirs, globs, .gitignore filtering                   |
-| 2026-02-19 | 1.3 Shell Passthrough            | Done   | !command syntax and shell mode toggle               |
-| 2026-02-19 | 1.4 AGENTS.md Context System     | Done   | Hierarchical global/project/jit memory              |
-| 2026-02-19 | 2.1 Session Checkpointing        | Done   | save/list/resume/delete with project hashing        |
-| 2026-02-19 | 2.2 MCP Server Support           | Done   | Client, registry, stdio transport                   |
-| 2026-02-19 | 2.3 Custom Commands              | Done   | TOML loader with {{args}} replacement               |
-| 2026-02-19 | 2.4 /stats, /copy, /export       | Done   | Session stats, clipboard copy, md/json export       |
-| 2026-02-19 | 2.4 /about, /tools, /compress    | Done   | Version info, tool listing, context compression     |
-| 2026-02-19 | 3.1 JSON Output Mode             | Done   | text/json/stream-json in headless mode              |
-| 2026-02-19 | 3.2 Token Caching                | Done   | mtime-based file cache, system prompt cache         |
+| Date       | Feature                       | Status | Notes                                               |
+| ---------- | ----------------------------- | ------ | --------------------------------------------------- |
+| 2026-02-19 | 1.1 Headless Mode             | Done   | -p flag, --output-format json/stream-json           |
+| 2026-02-19 | 1.2 Enhanced @ File Inclusion | Done   | Dirs, globs, .gitignore filtering                   |
+| 2026-02-19 | 1.3 Shell Passthrough         | Done   | !command syntax and shell mode toggle               |
+| 2026-02-19 | 1.4 AGENTS.md Context System  | Done   | Hierarchical global/project/jit memory              |
+| 2026-02-19 | 2.1 Session Checkpointing     | Done   | save/list/resume/delete with project hashing        |
+| 2026-02-19 | 2.2 MCP Server Support        | Done   | Client, registry, stdio transport                   |
+| 2026-02-19 | 2.3 Custom Commands           | Done   | TOML loader with {{args}} replacement               |
+| 2026-02-19 | 2.4 /stats, /copy, /export    | Done   | Session stats, clipboard copy, md/json export       |
+| 2026-02-19 | 2.4 /about, /tools, /compress | Done   | Version info, tool listing, context compression     |
+| 2026-02-19 | 3.1 JSON Output Mode          | Done   | text/json/stream-json in headless mode              |
+| 2026-02-19 | 3.2 Token Caching             | Done   | mtime-based file cache, system prompt cache         |
+| 2026-02-19 | 4.1 Structured Logging        | Done   | pino-based logger, --verbose/--debug CLI flags      |
+| 2026-02-19 | 4.2 Error Recovery & Retries  | Done   | Typed errors, exponential backoff, user feedback    |
+| 2026-02-19 | 4.3 Token Counting & Cost     | Done   | js-tiktoken counting, cost tracking, /stats upgrade |

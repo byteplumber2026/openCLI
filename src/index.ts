@@ -13,6 +13,7 @@ import {
   SUPPORTED_PROVIDERS,
   getEnvVar,
 } from "./config/env.js";
+import { createLogger } from "./logging/logger.js";
 
 program
   .name("open-cli")
@@ -29,7 +30,16 @@ program
     "Output format (text, json, stream-json)",
     "text",
   )
+  .option("--verbose", "Enable info-level logging to stderr")
+  .option("--debug", "Enable debug-level logging to stderr")
   .action(async (options) => {
+    const logLevel = options.debug
+      ? "debug"
+      : options.verbose
+        ? "info"
+        : "silent";
+    createLogger(logLevel);
+
     try {
       // Check for any available providers
       const available = getAvailableProviders();

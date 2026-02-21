@@ -5,6 +5,7 @@ import { shellRun } from "./shell.js";
 import { fileRead, fileWrite, fileList, fileSearch } from "./files.js";
 import { webSearch } from "./web.js";
 import { httpRequest } from "./http.js";
+import { traceToolExecution } from "../logging/trace.js";
 
 const SAFE_TOOLS = [
   "file_read",
@@ -68,12 +69,16 @@ export async function executeTool(
   }
 
   try {
+    const start = Date.now();
     const result = await runTool(name, args);
+    const durationMs = Date.now() - start;
+    traceToolExecution(name, args, durationMs, result.length);
     console.log(chalk.green("[Done]"));
     console.log(result);
     return { id, result };
   } catch (error: any) {
     const errMsg = error.message || "Unknown error";
+    traceToolExecution(name, args, 0, 0);
     console.log(chalk.red("[Error]"), errMsg);
     return { id, result: `Error: ${errMsg}`, isError: true };
   }

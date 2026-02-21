@@ -26,6 +26,7 @@ import { calculateStats, formatStats } from "./stats.js";
 import { TOOL_DEFINITIONS } from "../tools/definitions.js";
 import { clearFileCache } from "../context/cache.js";
 import { createRequire } from "module";
+import { UsageTracker } from "../providers/usage.js";
 
 const require = createRequire(import.meta.url);
 const { version: APP_VERSION } = require("../../package.json");
@@ -39,6 +40,7 @@ export interface ChatState {
   provider: Provider;
   model: string;
   messages: Message[];
+  usage: UsageTracker;
 }
 
 export function isCommand(input: string): boolean {
@@ -428,8 +430,13 @@ export async function handleCommand(
       }
 
       const stats = calculateStats(state.messages);
+      const models = state.provider.listModels();
+      const modelInfo = models.find((m) => m.id === state.model);
+
       console.log(chalk.bold("\nSession Statistics:"));
-      console.log(formatStats(stats));
+      console.log(
+        formatStats(stats, state.usage.getStats(), modelInfo?.contextWindow),
+      );
       return { action: "continue", state };
     }
 
@@ -460,9 +467,7 @@ export async function handleCommand(
       };
 
       const content =
-        format === "md"
-          ? exportToMarkdown(session)
-          : exportToJSON(session);
+        format === "md" ? exportToMarkdown(session) : exportToJSON(session);
 
       if (filePath) {
         try {
@@ -533,7 +538,10 @@ export async function handleCommand(
         if (showDesc) {
           console.log(`  ${chalk.cyan(tool.name)}`);
           console.log(`    ${tool.description}`);
-          const params = tool.parameters as { required?: string[]; properties?: Record<string, { description?: string }> };
+          const params = tool.parameters as {
+            required?: string[];
+            properties?: Record<string, { description?: string }>;
+          };
           if (params.properties) {
             for (const [key, val] of Object.entries(params.properties)) {
               const req = params.required?.includes(key) ? " (required)" : "";
@@ -552,7 +560,9 @@ export async function handleCommand(
         console.log(chalk.bold("\nMCP Tools:"));
         for (const tool of mcpTools) {
           if (showDesc) {
-            console.log(`  ${chalk.cyan(tool.name)} ${chalk.dim(`[${tool.serverName}]`)}`);
+            console.log(
+              `  ${chalk.cyan(tool.name)} ${chalk.dim(`[${tool.serverName}]`)}`,
+            );
             console.log(`    ${tool.description}`);
           } else {
             console.log(
@@ -612,7 +622,8 @@ export async function handleCommand(
         },
         {
           role: "assistant",
-          content: "Understood. I have the context from our previous conversation. How can I help?",
+          content:
+            "Understood. I have the context from our previous conversation. How can I help?",
         },
       ];
 

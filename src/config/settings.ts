@@ -11,6 +11,10 @@ interface OpenCliConfig {
     promptColor: string;
     codeTheme: string;
   };
+  logging: {
+    level: string;
+    file: boolean;
+  };
   mcpServers: Record<string, MCPServerConfig>;
 }
 
@@ -21,6 +25,10 @@ const defaults: OpenCliConfig = {
   styles: {
     promptColor: "cyan",
     codeTheme: "monokai",
+  },
+  logging: {
+    level: "silent",
+    file: false,
   },
   mcpServers: {},
 };
@@ -71,4 +79,8 @@ export function removeMCPServer(name: string): void {
   const servers = getMCPServers();
   const { [name]: _, ...rest } = servers;
   config.set("mcpServers", rest);
+}
+
+export function getLogLevel(): string {
+  return config.get("logging.level") || "silent";
 }

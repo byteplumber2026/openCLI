@@ -1,5 +1,6 @@
 import type { MCPServerConfig, MCPTool, MCPTransport } from "./types.js";
 import { StdioTransport } from "./transport.js";
+import { getLogger } from "../logging/logger.js";
 
 export class MCPClient {
   private transport: MCPTransport | null = null;
@@ -13,12 +14,16 @@ export class MCPClient {
   ) {}
 
   async connect(): Promise<void> {
+    getLogger().info({ server: this.name }, "mcp_connect_start");
     this.transport = new StdioTransport(this.config);
     this.transport.onMessage((message) => this.handleMessage(message));
     await this.transport.connect();
 
-    // Discover tools after connecting
     await this.discoverTools();
+    getLogger().info(
+      { server: this.name, toolCount: this.tools.length },
+      "mcp_connect_complete",
+    );
   }
 
   async disconnect(): Promise<void> {
@@ -35,6 +40,10 @@ export class MCPClient {
     name: string,
     args: Record<string, unknown>,
   ): Promise<string> {
+    getLogger().debug(
+      { server: this.name, tool: name, args },
+      "mcp_tool_start",
+    );
     return new Promise((resolve, reject) => {
       const id = ++this.requestId;
 
@@ -64,6 +73,7 @@ export class MCPClient {
   }
 
   private async discoverTools(): Promise<void> {
+    getLogger().debug({ server: this.name }, "mcp_discover_start");
     return new Promise((resolve, reject) => {
       const id = ++this.requestId;
 

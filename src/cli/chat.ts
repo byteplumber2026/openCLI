@@ -21,6 +21,11 @@ import {
   executeShellPassthrough,
   formatShellOutput,
 } from "./shell-passthrough.js";
+import { withRetry } from "../providers/retry.js";
+import { classifyError } from "../providers/errors.js";
+import { getLogger } from "../logging/logger.js";
+import { countMessageTokens, countTokens } from "../providers/tokens.js";
+import { UsageTracker } from "../providers/usage.js";
 
 async function runShellMode(): Promise<void> {
   const rl = readline.createInterface({
@@ -68,6 +73,7 @@ export async function startChat(
     provider,
     model,
     messages: [],
+    usage: new UsageTracker(),
   };
 
   // Set model on provider if supported
@@ -174,12 +180,50 @@ async function chatWithTools(state: ChatState): Promise<void> {
     let fullResponse = "";
     let toolCalls: any[] | undefined;
 
+    const models = state.provider.listModels();
+    const modelInfo = models.find((m) => m.id === state.model);
+    const contextWindow = modelInfo?.contextWindow ?? 128000;
+    const inputTokens = countMessageTokens(state.messages, state.model);
+    const usagePercent = Math.round((inputTokens / contextWindow) * 100);
+
+    if (usagePercent > 80) {
+      console.log(
+        chalk.yellow(
+          `\n⚠ ${usagePercent}% of context window used (${(inputTokens / 1000).toFixed(1)}K/${(contextWindow / 1000).toFixed(0)}K). Consider /compress or /clear.`,
+        ),
+      );
+    }
+
+    getLogger().debug(
+      { inputTokens, contextWindow, usagePercent },
+      "token_budget",
+    );
+
+    const systemPrompt = await getSystemPrompt();
+
     try {
-      for await (const chunk of state.provider.chat(state.messages, {
-        temperature: 0.7,
-        systemPrompt: await getSystemPrompt(),
-        tools: TOOL_DEFINITIONS,
-      })) {
+      const stream = withRetry(
+        () =>
+          state.provider.chat(state.messages, {
+            temperature: 0.7,
+            systemPrompt,
+            tools: TOOL_DEFINITIONS,
+          }),
+        { maxRetries: 3, baseDelayMs: 1000, maxDelayMs: 10000 },
+        (attempt, delayMs, error) => {
+          console.log(
+            chalk.dim(
+              `\nRetrying in ${delayMs / 1000}s... (attempt ${attempt}/3)`,
+            ),
+          );
+          getLogger().warn(
+            { attempt, delayMs, error: error.message },
+            "api_retry",
+          );
+        },
+      );
+
+      for await (const chunk of stream) {
         streamWrite(chunk.content);
         fullResponse += chunk.content;
         if (chunk.toolCalls) {
@@ -187,11 +231,29 @@ async function chatWithTools(state: ChatState): Promise<void> {
         }
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : "Unknown error";
-      console.log(chalk.red(`\nError: ${errorMsg}`));
-      state.messages.pop();
+      const classified = classifyError(error);
+      const errorMsg = classified.message;
+      getLogger().error(
+        { error: errorMsg, retryable: classified.retryable },
+        "api_error",
+      );
+
+      if (classified.retryable) {
+        console.log(
+          chalk.red(
+            `\nError: Provider unavailable after 3 attempts. Your message is preserved — try again or /provider to switch.`,
+          ),
+        );
+      } else {
+        console.log(chalk.red(`\nError: ${errorMsg}`));
+        state.messages.pop();
+      }
       return;
     }
+
+    const outputTokens = countTokens(fullResponse, state.model);
+    state.usage.track(inputTokens, outputTokens, state.model);
+    getLogger().debug({ inputTokens, outputTokens }, "token_usage");
 
     // If no tool calls, we're done
     if (!toolCalls || toolCalls.length === 0) {
