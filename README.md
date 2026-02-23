@@ -1,26 +1,74 @@
 # Open-CLI
 
-A powerful multi-provider AI terminal assistant with built-in tools, session management, and extensibility.
+<p align="center">
+  <a href="https://www.npmjs.com/package/opencli">
+    <img src="https://img.shields.io/npm/v/opencli.svg" alt="npm version">
+  </a>
+  <a href="https://github.com/anomalyco/openCLI/actions">
+    <img src="https://img.shields.io/github/actions/workflow/status/anomalyco/openCLI/test.yml" alt="build status">
+  </a>
+  <a href="https://github.com/anomalyco/openCLI/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/anomalyco/openCLI.svg" alt="MIT license">
+  </a>
+  <a href="https://github.com/anomalyco/openCLI/stargazers">
+    <img src="https://img.shields.io/github/stars/anomalyco/openCLI.svg" alt="GitHub stars">
+  </a>
+</p>
 
-## Features
+A powerful multi-provider AI terminal assistant with built-in tools, session management, and extensibility. Interact with GPT-4, Gemini, Grok, DeepSeek, and other models directly from your command line.
 
-- **Multi-Provider Support**: OpenAI, Google Gemini, xAI Grok, Minimax, DeepSeek, and OpenRouter (15 curated models)
-- **Interactive Chat**: Rich terminal interface with syntax highlighting
-- **Built-in Tools**:
-  - Shell command execution
-  - File reading, writing, and editing
-  - Web search (Brave API)
-  - HTTP requests
-- **Headless Mode**: Use in CI/CD pipelines with `-p` flag
-- **Session Management**: Save, resume, and share conversations
-- **MCP Server Support**: Connect to Model Context Protocol servers for extended capabilities
-- **Custom Commands**: Define your own slash commands in TOML
-- **Skills**: Reusable AI instruction sets in markdown, loaded automatically per-project
-- **AGENTS.md Context**: Hierarchical context files for project-specific instructions
-- **Enhanced @ Files**: Include directories, glob patterns, git-aware filtering
-- **Shell Passthrough**: Execute shell commands directly with `!` prefix
-- **Token Tracking**: Accurate token counting and cost estimation
-- **Structured Logging**: Debug with `--verbose` or `--debug` flags
+## Overview
+
+Open-CLI brings large language models to your terminal. Whether you need quick code reviews, file manipulation, web searches, or complex multi-step tasks, Open-CLI provides an interactive chat interface with access to a rich set of built-in tools.
+
+```mermaid
+graph TB
+    subgraph User
+        CLI[CLI Interface]
+    end
+
+    subgraph Core
+        Chat[Chat Handler]
+        Session[Session Manager]
+        Skills[Skills Loader]
+    end
+
+    subgraph Tools
+        Shell[Shell Executor]
+        Files[File Operations]
+        Web[Web Search]
+        HTTP[HTTP Client]
+    end
+
+    subgraph Providers
+        OpenAI[OpenAI]
+        Gemini[Google Gemini]
+        Grok[xAI Grok]
+        Minimax[Minimax]
+        DeepSeek[DeepSeek]
+        OpenRouter[OpenRouter]
+    end
+
+    CLI --> Chat
+    Chat --> Session
+    Chat --> Skills
+    Chat --> Tools
+    Chat --> Providers
+```
+
+## Key Features
+
+| Feature                | Description                                                                       |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| **Multi-Provider**     | 15+ curated models across OpenAI, Gemini, Grok, Minimax, DeepSeek, and OpenRouter |
+| **Built-in Tools**     | Shell execution, file operations, web search, HTTP requests                       |
+| **Session Management** | Save, resume, and share conversations                                             |
+| **MCP Support**        | Connect to Model Context Protocol servers                                         |
+| **Custom Commands**    | Define slash commands in TOML                                                     |
+| **Skills**             | Reusable AI instruction sets in markdown                                          |
+| **AGENTS.md**          | Hierarchical context files for project-specific instructions                      |
+| **Headless Mode**      | CI/CD integration with `-p` flag                                                  |
+| **Token Tracking**     | Accurate counting and cost estimation                                             |
 
 ## Installation
 
@@ -28,26 +76,23 @@ A powerful multi-provider AI terminal assistant with built-in tools, session man
 npm install -g opencli
 ```
 
-Or run directly:
+Or run without installing:
 
 ```bash
 npx opencli
 ```
+
+**Requirements:** Node.js 20+
 
 ## Quick Start
 
 ```bash
 # Set at least one API key
 export OPENAI_API_KEY=sk-...
-# or
 export GOOGLE_API_KEY=AI...
-# or
 export XAI_API_KEY=x...
-# or
 export MINIMAX_API_KEY=...
-# or
 export DEEPSEEK_API_KEY=sk-...
-# or
 export OPENROUTER_API_KEY=sk-or-...
 
 # Start interactive chat
@@ -57,6 +102,17 @@ opencli
 opencli -p "Explain what this codebase does"
 ```
 
+## Supported Providers
+
+| Provider      | Models                           | Environment Variable |
+| ------------- | -------------------------------- | -------------------- |
+| OpenAI        | gpt-4o, gpt-4o-mini, o1, o1-mini | `OPENAI_API_KEY`     |
+| Google Gemini | gemini-2.0-flash, gemini-1.5-pro | `GOOGLE_API_KEY`     |
+| xAI Grok      | grok-2, grok-2-vision            | `XAI_API_KEY`        |
+| Minimax       | MoE-8x7B, text-01                | `MINIMAX_API_KEY`    |
+| DeepSeek      | deepseek-chat, deepseek-coder    | `DEEPSEEK_API_KEY`   |
+| OpenRouter    | claude-3.5, llama-3.3, and more  | `OPENROUTER_API_KEY` |
+
 ## Usage
 
 ### Interactive Mode
@@ -65,16 +121,16 @@ opencli -p "Explain what this codebase does"
 opencli
 ```
 
-Commands available in chat:
+**Chat Commands:**
 
 - `/help` - Show help message
 - `/models` - Switch model
 - `/provider` - Switch provider
 - `/skills` - List loaded skills
-- `/skill:<name>` - Invoke a skill for the current message
+- `/skill:<name>` - Invoke a skill
 - `/stats` - Show session statistics
-- `/copy` - Copy last response to clipboard
-- `/clear` - Clear conversation history
+- `/copy` - Copy last response
+- `/clear` - Clear conversation
 - `/exit` - Exit the application
 
 ### Session Management
@@ -115,9 +171,11 @@ opencli -p "List all TODOs" --output-format json
 opencli -p "Run tests" --output-format stream-json
 ```
 
+## Advanced Features
+
 ### MCP Servers
 
-Configure MCP servers in `~/.open-cli/settings.json`:
+Configure in `~/.open-cli/settings.json`:
 
 ```json
 {
@@ -130,14 +188,11 @@ Configure MCP servers in `~/.open-cli/settings.json`:
 }
 ```
 
-Commands:
-
-- `/mcp` - List MCP servers and tools
-- `/mcp refresh` - Reconnect to MCP servers
+Commands: `/mcp`, `/mcp refresh`
 
 ### Custom Commands
 
-Create custom commands in `~/.open-cli/commands/` as TOML files:
+Create in `~/.open-cli/commands/` as TOML files:
 
 ```toml
 # ~/.open-cli/commands/review.toml
@@ -155,63 +210,49 @@ Focus on:
 """
 ```
 
-Usage:
-
-```bash
-/review src/index.ts
-```
+Usage: `/review src/index.ts`
 
 ### Skills
 
-Skills are markdown files that inject reusable AI instructions into the system prompt. Define them globally or per-project.
+Define reusable AI instruction sets:
 
 ```markdown
 # ~/.open-cli/skills/code-review.md
+
 ---
+
 name: code-review
 description: Reviews code for bugs, security issues, and style
+
 ---
 
 You are an expert code reviewer. When reviewing code:
+
 - Check for security vulnerabilities
 - Look for performance issues
 - Suggest idiomatic improvements
 ```
 
-Skills are loaded from two locations (project-local overrides global on conflict):
+Locations:
 
-- `~/.open-cli/skills/` — global skills, always available
-- `.opencli/skills/` — project-local skills, checked into your repo
+- `~/.open-cli/skills/` — global skills
+- `.opencli/skills/` — project-local skills
 
-Commands:
-
-```bash
-/skills                  # List all loaded skills
-/skills reload           # Reload skills from disk
-/skill:code-review       # Activate skill for next message
-/skill:code-review <msg> # Invoke skill and send message in one go
-```
-
-The AI also sees all skill names and descriptions automatically and can apply them proactively.
+Commands: `/skills`, `/skills reload`, `/skill:code-review`
 
 ### AGENTS.md Context
 
-Create context files for project-specific instructions:
+Hierarchical context files:
 
-- `~/.open-cli/AGENTS.md` - Global user context
+- `~/.open-cli/AGENTS.md` - Global context
 - `<project>/AGENTS.md` - Project context
-- `<subdir>/AGENTS.md` - JIT context for specific directories
+- `<subdir>/AGENTS.md` - Directory-specific context
 
-Commands:
-
-- `/memory show` - Display loaded context
-- `/memory add <text>` - Add to global AGENTS.md
-- `/memory refresh` - Reload all context files
-- `/memory list` - List AGENTS.md files being used
+Commands: `/memory show`, `/memory add`, `/memory refresh`, `/memory list`
 
 ## Configuration
 
-Settings are stored in `~/.open-cli/settings.json`:
+Settings stored in `~/.open-cli/settings.json`:
 
 ```json
 {
@@ -228,28 +269,16 @@ Settings are stored in `~/.open-cli/settings.json`:
 }
 ```
 
-## Environment Variables
+## Command-Line Options
 
-| Provider     | Environment Variable |
-| ------------ | -------------------- |
-| OpenAI       | `OPENAI_API_KEY`     |
-| Gemini       | `GOOGLE_API_KEY`     |
-| Grok         | `XAI_API_KEY`        |
-| Minimax      | `MINIMAX_API_KEY`    |
-| DeepSeek     | `DEEPSEEK_API_KEY`   |
-| OpenRouter   | `OPENROUTER_API_KEY` |
-| Brave Search | `BRAVE_API_KEY`      |
-
-## Options
-
-| Flag                  | Description                                     |
-| --------------------- | ----------------------------------------------- |
-| `-p, --prompt <text>` | Run in headless mode with a single prompt       |
-| `--provider <name>`   | Provider to use (openai, gemini, grok, minimax, deepseek, openrouter) |
-| `-m, --model <id>`    | Model to use                                    |
-| `-o, --output-format` | Output format (text, json, stream-json)         |
-| `--verbose`           | Enable info-level logging                       |
-| `--debug`             | Enable debug-level logging                      |
+| Flag                  | Description                               |
+| --------------------- | ----------------------------------------- |
+| `-p, --prompt <text>` | Run in headless mode with a single prompt |
+| `--provider <name>`   | Provider to use                           |
+| `-m, --model <id>`    | Model to use                              |
+| `-o, --output-format` | Output format (text, json, stream-json)   |
+| `--verbose`           | Enable info-level logging                 |
+| `--debug`             | Enable debug-level logging                |
 
 ## Development
 
@@ -272,4 +301,4 @@ npm run lint
 
 ## License
 
-MIT
+MIT License
