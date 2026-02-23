@@ -146,3 +146,4 @@ opencli -p "List all TODOs" --output-format json
 - Learn about [Tools](./tools.md) for file operations, shell commands, and more
 - Set up [MCP Servers](./mcp-servers.md) for extended capabilities
 - Configure [Custom Commands](./custom-commands.md) for your workflow
+- Create [Skills](./skills.md) for reusable AI instruction sets

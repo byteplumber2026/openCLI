@@ -15,6 +15,7 @@ A powerful multi-provider AI terminal assistant with built-in tools, session man
 - **Session Management**: Save, resume, and share conversations
 - **MCP Server Support**: Connect to Model Context Protocol servers for extended capabilities
 - **Custom Commands**: Define your own slash commands in TOML
+- **Skills**: Reusable AI instruction sets in markdown, loaded automatically per-project
 - **AGENTS.md Context**: Hierarchical context files for project-specific instructions
 - **Enhanced @ Files**: Include directories, glob patterns, git-aware filtering
 - **Shell Passthrough**: Execute shell commands directly with `!` prefix
@@ -153,6 +154,39 @@ Usage:
 ```bash
 /review src/index.ts
 ```
+
+### Skills
+
+Skills are markdown files that inject reusable AI instructions into the system prompt. Define them globally or per-project.
+
+```markdown
+# ~/.open-cli/skills/code-review.md
+---
+name: code-review
+description: Reviews code for bugs, security issues, and style
+---
+
+You are an expert code reviewer. When reviewing code:
+- Check for security vulnerabilities
+- Look for performance issues
+- Suggest idiomatic improvements
+```
+
+Skills are loaded from two locations (project-local overrides global on conflict):
+
+- `~/.open-cli/skills/` — global skills, always available
+- `.opencli/skills/` — project-local skills, checked into your repo
+
+Commands:
+
+```bash
+/skills                  # List all loaded skills
+/skills reload           # Reload skills from disk
+/skill:code-review       # Activate skill for next message
+/skill:code-review <msg> # Invoke skill and send message in one go
+```
+
+The AI also sees all skill names and descriptions automatically and can apply them proactively.
 
 ### AGENTS.md Context
 

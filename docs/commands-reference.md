@@ -245,6 +245,61 @@ Examples:
 
 See [MCP Servers](./mcp-servers.md) for detailed documentation.
 
+## Skills
+
+### /skills
+
+List all currently loaded skills with their descriptions and source paths.
+
+```
+> /skills
+```
+
+Output example:
+
+```
+Loaded Skills:
+
+  code-review          Reviews code for bugs, security issues, and style
+    /home/user/.open-cli/skills/code-review.md
+  refactor             Guides systematic refactoring
+    /home/user/myproject/.opencli/skills/refactor.md
+```
+
+Subcommand:
+
+```
+/skills reload   # Re-scan disk and reload all skill files
+```
+
+### /skill:\<name\>
+
+Invoke a specific skill by name. The skill's instructions are injected into the system prompt for that turn only.
+
+```
+/skill:<name>          # Activate skill — AI applies it to your next message
+/skill:<name> <msg>    # Invoke skill and send message in one go
+```
+
+Examples:
+
+```
+> /skill:code-review
+Skill "code-review" active for next message. Type your message:
+> Review the auth module
+
+> /skill:code-review Review the auth module
+```
+
+If the skill name is not found:
+
+```
+> /skill:unknown
+Unknown skill: unknown. Use /skills to list available skills.
+```
+
+See [Skills](./skills.md) for creating your own skills.
+
 ## Custom Commands
 
 ### /commands
