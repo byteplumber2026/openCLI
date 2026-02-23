@@ -25,11 +25,10 @@ import { executeCustomCommand } from "../commands/executor.js";
 import { calculateStats, formatStats } from "./stats.js";
 import { TOOL_DEFINITIONS } from "../tools/definitions.js";
 import { clearFileCache } from "../context/cache.js";
-import { createRequire } from "module";
 import { UsageTracker } from "../providers/usage.js";
+import pkg from "../../package.json" with { type: "json" };
 
-const require = createRequire(import.meta.url);
-const { version: APP_VERSION } = require("../../package.json");
+const APP_VERSION = pkg.version;
 
 const BUILTIN_COMMANDS = [
   "help",

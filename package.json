@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "tsx src/index.ts",
-    "build": "tsup src/index.ts --format esm --dts",
+    "build": "tsup src/index.ts --format esm --dts --platform node --external readline",
     "test": "vitest",
     "test:run": "vitest run",
     "lint": "eslint src",
