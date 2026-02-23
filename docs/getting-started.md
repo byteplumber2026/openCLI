@@ -31,6 +31,8 @@ At least one provider API key is required. Create an account and get your key fr
 - **Google Gemini**: https://aistudio.google.com/app/apikey
 - **xAI Grok**: https://console.x.ai
 - **Minimax**: https://platform.minimaxi.com
+- **DeepSeek**: https://platform.deepseek.com
+- **OpenRouter** (access Claude, Llama, Gemini, Mistral & more via one key): https://openrouter.ai/keys
 
 Set the environment variable:
 
@@ -46,6 +48,12 @@ export XAI_API_KEY=x...
 
 # Minimax
 export MINIMAX_API_KEY=...
+
+# DeepSeek
+export DEEPSEEK_API_KEY=sk-...
+
+# OpenRouter (access to Claude, Llama, Gemini, Mistral, and more)
+export OPENROUTER_API_KEY=sk-or-...
 ```
 
 For persistent setup, add to your shell profile (`~/.bashrc`, `~/.zshrc`, or `~/.config/fish/config.fish`):

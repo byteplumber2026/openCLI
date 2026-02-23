@@ -4,7 +4,7 @@ A powerful multi-provider AI terminal assistant with built-in tools, session man
 
 ## Features
 
-- **Multi-Provider Support**: OpenAI, Google Gemini, xAI Grok, and Minimax
+- **Multi-Provider Support**: OpenAI, Google Gemini, xAI Grok, Minimax, DeepSeek, and OpenRouter (15 curated models)
 - **Interactive Chat**: Rich terminal interface with syntax highlighting
 - **Built-in Tools**:
   - Shell command execution
@@ -230,6 +230,8 @@ Settings are stored in `~/.open-cli/settings.json`:
 | Gemini       | `GOOGLE_API_KEY`     |
 | Grok         | `XAI_API_KEY`        |
 | Minimax      | `MINIMAX_API_KEY`    |
+| DeepSeek     | `DEEPSEEK_API_KEY`   |
+| OpenRouter   | `OPENROUTER_API_KEY` |
 | Brave Search | `BRAVE_API_KEY`      |
 
 ## Options
@@ -237,7 +239,7 @@ Settings are stored in `~/.open-cli/settings.json`:
 | Flag                  | Description                                     |
 | --------------------- | ----------------------------------------------- |
 | `-p, --prompt <text>` | Run in headless mode with a single prompt       |
-| `--provider <name>`   | Provider to use (openai, gemini, grok, minimax) |
+| `--provider <name>`   | Provider to use (openai, gemini, grok, minimax, deepseek, openrouter) |
 | `-m, --model <id>`    | Model to use                                    |
 | `-o, --output-format` | Output format (text, json, stream-json)         |
 | `--verbose`           | Enable info-level logging                       |
