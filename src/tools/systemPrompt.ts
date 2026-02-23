@@ -6,8 +6,12 @@ import {
   getCachedSystemPrompt,
   setCachedSystemPrompt,
 } from "../context/cache.js";
+import type { Skill } from "../skills/types.js";
 
-export async function getSystemPrompt(): Promise<string> {
+export async function getSystemPrompt(
+  skills: Map<string, Skill> = new Map(),
+  activeSkillBody?: string,
+): Promise<string> {
   const memories = await loadHierarchicalMemory(process.cwd());
 
   // Build a signature from loaded memory paths + content lengths
@@ -15,13 +19,27 @@ export async function getSystemPrompt(): Promise<string> {
     .map((m) => `${m.path}:${m.content.length}`)
     .join("|");
 
-  const cached = getCachedSystemPrompt(memorySig);
+  const skillsSig = [...skills.keys()].sort().join(",") + (activeSkillBody ? `:active` : "");
+  const cacheSig = `${memorySig}|skills:${skillsSig}`;
+
+  const cached = getCachedSystemPrompt(cacheSig);
   if (cached) {
     return cached;
   }
 
   const memorySection =
     memories.length > 0 ? formatMemoryForPrompt(memories) : "";
+
+  const skillsIndex =
+    skills.size > 0
+      ? `\n## Available Skills\n${[...skills.values()]
+          .map((s) => `- ${s.name}: ${s.description}`)
+          .join("\n")}\nApply skills proactively when the user's request matches.`
+      : "";
+
+  const activeSkillSection = activeSkillBody
+    ? `\n## Active Skill\n${activeSkillBody}`
+    : "";
 
   const prompt = `You are a helpful coding assistant with access to tools for file and shell operations.
 
@@ -44,8 +62,8 @@ export async function getSystemPrompt(): Promise<string> {
 ## Working Directory
 Current directory: ${process.cwd()}
 ${memorySection ? `\n${memorySection}\n` : ""}
-When the user asks you to perform tasks, use the available tools. For reading files, modifying code, running tests, or executing commands - use the tools rather than just describing what to do.`;
+When the user asks you to perform tasks, use the available tools. For reading files, modifying code, running tests, or executing commands - use the tools rather than just describing what to do.${skillsIndex}${activeSkillSection}`;
 
-  setCachedSystemPrompt(prompt, memorySig);
+  setCachedSystemPrompt(prompt, cacheSig);
   return prompt;
 }

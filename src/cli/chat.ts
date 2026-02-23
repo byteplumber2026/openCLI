@@ -3,6 +3,7 @@ import * as readline from "readline";
 import * as readlinePromises from "readline/promises";
 import chalk from "chalk";
 import type { Provider, Message } from "../providers/types.js";
+import type { Skill } from "../skills/types.js";
 import { formatPrompt, streamWrite } from "./renderer.js";
 import {
   isCommand,
@@ -230,7 +231,11 @@ export async function startChat(
   await runLoop();
 }
 
-async function chatWithTools(state: ChatState): Promise<void> {
+async function chatWithTools(
+  state: ChatState,
+  skills: Map<string, Skill> = new Map(),
+  activeSkillBody?: string,
+): Promise<void> {
   const maxIterations = 10; // Prevent infinite loops
   let iterations = 0;
 
@@ -260,7 +265,7 @@ async function chatWithTools(state: ChatState): Promise<void> {
       "token_budget",
     );
 
-    const systemPrompt = await getSystemPrompt();
+    const systemPrompt = await getSystemPrompt(skills, activeSkillBody);
 
     try {
       const stream = withRetry(
