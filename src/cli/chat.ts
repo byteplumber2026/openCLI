@@ -1,5 +1,6 @@
 // src/cli/chat.ts
 import * as readline from "readline";
+import * as readlinePromises from "readline/promises";
 import chalk from "chalk";
 import type { Provider, Message } from "../providers/types.js";
 import { formatPrompt, streamWrite } from "./renderer.js";
@@ -26,6 +27,7 @@ import { classifyError } from "../providers/errors.js";
 import { getLogger } from "../logging/logger.js";
 import { countMessageTokens, countTokens } from "../providers/tokens.js";
 import { UsageTracker } from "../providers/usage.js";
+import { CommandHistory } from "./history.js";
 
 async function runShellMode(): Promise<void> {
   const rl = readline.createInterface({
@@ -83,40 +85,99 @@ export async function startChat(
 
   console.log(chalk.dim("\nType /help for commands, /exit to quit.\n"));
 
-  const createReadline = () => {
-    const rl = readline.createInterface({
+  const commandHistory = new CommandHistory(100);
+
+  const promptWithHistory = async (prompt: string): Promise<string> => {
+    const rl = readlinePromises.createInterface({
       input: process.stdin,
       output: process.stdout,
     });
 
-    rl.on("SIGINT", () => {
-      console.log(chalk.dim("\nGoodbye!"));
-      rl.close();
-      process.exit(0);
-    });
+    return new Promise((resolve) => {
+      let currentInput = "";
+      let cursorPos = 0;
 
-    return rl;
+      process.stdout.write(prompt);
+
+      const keypressHandler = (char: string, key: any) => {
+        if (key.name === "up") {
+          const histItem = commandHistory.navigateUp();
+          if (histItem) {
+            process.stdout.write(
+              `\r${prompt}${" ".repeat(currentInput.length + 10)}`,
+            );
+            currentInput = histItem;
+            cursorPos = currentInput.length;
+            process.stdout.write(`\r${prompt}${currentInput}`);
+          }
+        } else if (key.name === "down") {
+          const histItem = commandHistory.navigateDown();
+          process.stdout.write(
+            `\r${prompt}${" ".repeat(currentInput.length + 10)}`,
+          );
+          currentInput = histItem;
+          cursorPos = currentInput.length;
+          process.stdout.write(`\r${prompt}${currentInput}`);
+        } else if (key.name === "left") {
+          if (cursorPos > 0) {
+            cursorPos--;
+            process.stdout.write("\x1b[D");
+          }
+        } else if (key.name === "right") {
+          if (cursorPos < currentInput.length) {
+            cursorPos++;
+            process.stdout.write("\x1b[C");
+          }
+        } else if (key.name === "backspace") {
+          if (cursorPos > 0) {
+            currentInput =
+              currentInput.slice(0, cursorPos - 1) +
+              currentInput.slice(cursorPos);
+            cursorPos--;
+            process.stdout.write(
+              `\r${prompt}${currentInput} \x1b[${currentInput.length - cursorPos + 1}D`,
+            );
+          }
+        } else if (key.name === "return" || key.name === "enter") {
+          process.stdin.off("keypress", keypressHandler);
+          process.stdout.write("\n");
+          rl.close();
+          resolve(currentInput);
+        } else if (key.name === "c" && key.ctrl) {
+          console.log(chalk.dim("\nGoodbye!"));
+          process.exit(0);
+        } else if (char && !key.ctrl && !key.meta) {
+          currentInput =
+            currentInput.slice(0, cursorPos) +
+            char +
+            currentInput.slice(cursorPos);
+          cursorPos++;
+          process.stdout.write(
+            `\r${prompt}${currentInput}\x1b[${currentInput.length - cursorPos}D`,
+          );
+        }
+      };
+
+      process.stdin.on("keypress", keypressHandler);
+
+      process.stdin.setRawMode(true);
+      process.stdin.resume();
+    });
   };
 
   const runLoop = async (): Promise<void> => {
     while (true) {
-      const rl = createReadline();
-
-      const input = await new Promise<string>((resolve) => {
-        rl.question(
-          formatPrompt(state.provider.name, state.model),
-          (answer) => {
-            rl.close();
-            resolve(answer);
-          },
-        );
-      });
+      const input = await promptWithHistory(
+        formatPrompt(state.provider.name, state.model),
+      );
 
       const trimmed = input.trim();
 
       if (!trimmed) {
         continue;
       }
+
+      commandHistory.add(trimmed);
 
       // Handle shell passthrough
       if (isShellModeToggle(trimmed)) {
