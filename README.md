@@ -110,7 +110,7 @@ opencli -p "Run tests" --output-format stream-json
 
 ### MCP Servers
 
-Configure MCP servers in `~/.opencli/settings.json`:
+Configure MCP servers in `~/.open-cli/settings.json`:
 
 ```json
 {
@@ -130,10 +130,10 @@ Commands:
 
 ### Custom Commands
 
-Create custom commands in `~/.opencli/commands/` as TOML files:
+Create custom commands in `~/.open-cli/commands/` as TOML files:
 
 ```toml
-# ~/.opencli/commands/review.toml
+# ~/.open-cli/commands/review.toml
 name = "review"
 description = "Review code for issues"
 prompt = """
@@ -158,7 +158,7 @@ Usage:
 
 Create context files for project-specific instructions:
 
-- `~/.opencli/AGENTS.md` - Global user context
+- `~/.open-cli/AGENTS.md` - Global user context
 - `<project>/AGENTS.md` - Project context
 - `<subdir>/AGENTS.md` - JIT context for specific directories
 
@@ -171,7 +171,7 @@ Commands:
 
 ## Configuration
 
-Settings are stored in `~/.opencli/settings.json`:
+Settings are stored in `~/.open-cli/settings.json`:
 
 ```json
 {
