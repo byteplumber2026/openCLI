@@ -52,13 +52,13 @@ Enable non-interactive usage for scripting and automation.
 
 ```bash
 # Single prompt, exit after response
-open-cli -p "Explain this codebase"
+opencli -p "Explain this codebase"
 
 # JSON output for parsing
-open-cli -p "List all TODOs" --output-format json
+opencli -p "List all TODOs" --output-format json
 
 # Stream JSON events
-open-cli -p "Run tests" --output-format stream-json
+opencli -p "Run tests" --output-format stream-json
 ```
 
 #### Implementation
@@ -553,7 +553,7 @@ export function calculateStats(state: ChatState): SessionStats;
 Structured output for scripting:
 
 ```bash
-open-cli -p "List files" --output-format json
+opencli -p "List files" --output-format json
 ```
 
 Output:

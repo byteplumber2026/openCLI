@@ -22,13 +22,13 @@
 
 ```json
 {
-  "name": "open-cli",
+  "name": "opencli",
   "version": "0.1.0",
   "description": "Multi-provider CLI AI assistant",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "open-cli": "dist/index.js"
+    "opencli": "dist/index.js"
   },
   "scripts": {
     "dev": "tsx src/index.ts",
@@ -99,7 +99,7 @@ dist/
 // src/index.ts
 #!/usr/bin/env node
 
-console.log('open-cli starting...');
+console.log('opencli starting...');
 ```
 
 **Step 5: Install dependencies**
@@ -109,7 +109,7 @@ Run: `npm install`
 **Step 6: Verify setup**
 
 Run: `npm run dev`
-Expected: "open-cli starting..."
+Expected: "opencli starting..."
 
 **Step 7: Commit**
 
@@ -324,7 +324,7 @@ const defaults: OpenCliConfig = {
 };
 
 export const config = new Conf<OpenCliConfig>({
-  projectName: 'open-cli',
+  projectName: 'opencli',
   defaults,
 });
 
@@ -1012,7 +1012,7 @@ export async function selectProvider(): Promise<Provider> {
   }
 
   // Interactive selection
-  console.log(chalk.bold('\nWelcome to open-cli!\n'));
+  console.log(chalk.bold('\nWelcome to opencli!\n'));
 
   const choices = getProviderChoices();
   const providerName = await select({
@@ -1100,7 +1100,7 @@ import { readFileContext, parseFileReferences, formatFileContext } from '../../s
 import { writeFileSync, mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
 
-const TEST_DIR = '/tmp/open-cli-test';
+const TEST_DIR = '/tmp/opencli-test';
 
 describe('File Context', () => {
   beforeEach(() => {
@@ -1486,7 +1486,7 @@ ${chalk.bold('Available Commands:')}
   /styles     Change terminal color theme
   /clear      Clear conversation history
   /help       Show this help message
-  /exit       Exit open-cli
+  /exit       Exit opencli
 
 ${chalk.bold('File Context:')}
 
@@ -1682,7 +1682,7 @@ import { startChat } from './cli/chat.js';
 import { getAvailableProviders } from './config/env.js';
 
 program
-  .name('open-cli')
+  .name('opencli')
   .description('Multi-provider CLI AI assistant')
   .version('0.1.0')
   .option('-p, --provider <name>', 'Provider to use (openai, grok, minimax)')

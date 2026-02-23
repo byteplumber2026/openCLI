@@ -9,7 +9,7 @@ Headless mode allows you to use Open-CLI in non-interactive environments like CI
 Run a single prompt and exit automatically:
 
 ```bash
-open-cli -p "Explain what this codebase does"
+opencli -p "Explain what this codebase does"
 ```
 
 The command runs the prompt, outputs the response, and exits.
@@ -21,7 +21,7 @@ The command runs the prompt, outputs the response, and exits.
 Plain text output:
 
 ```bash
-open-cli -p "Hello" --output-format text
+opencli -p "Hello" --output-format text
 ```
 
 Output:
@@ -35,7 +35,7 @@ Hello! How can I help you today?
 Structured JSON output for parsing:
 
 ```bash
-open-cli -p "List the files in src/" --output-format json
+opencli -p "List the files in src/" --output-format json
 ```
 
 Output:
@@ -52,7 +52,7 @@ Output:
 Newline-delimited JSON stream for real-time processing:
 
 ```bash
-open-cli -p "Write a hello world program" --output-format stream-json
+opencli -p "Write a hello world program" --output-format stream-json
 ```
 
 Output:
@@ -85,21 +85,21 @@ Output:
 
 ```bash
 # In your CI script
-open-cli -p "Review this PR for bugs: $(git diff)" --output-format json | jq -r '.content'
+opencli -p "Review this PR for bugs: $(git diff)" --output-format json | jq -r '.content'
 ```
 
 #### Automated Testing
 
 ```bash
 # Generate test cases
-open-cli -p "Generate unit tests for src/calculator.ts" -o json > tests/generated.test.ts
+opencli -p "Generate unit tests for src/calculator.ts" -o json > tests/generated.test.ts
 ```
 
 #### Documentation Generation
 
 ```bash
 # Generate README from code
-open-cli -p "Generate a README for this project based on the files" -o text > README.md
+opencli -p "Generate a README for this project based on the files" -o text > README.md
 ```
 
 ### Scripting
@@ -108,7 +108,7 @@ open-cli -p "Generate a README for this project based on the files" -o text > RE
 
 ```bash
 for file in src/*.ts; do
-  open-cli -p "Summarize $file" --output-format text
+  opencli -p "Summarize $file" --output-format text
 done
 ```
 
@@ -116,7 +116,7 @@ done
 
 ```bash
 # Convert file formats
-open-cli -p "Convert this JSON to YAML: $(cat config.json)" -o text > config.yaml
+opencli -p "Convert this JSON to YAML: $(cat config.json)" -o text > config.yaml
 ```
 
 ### Development Workflows
@@ -125,14 +125,14 @@ open-cli -p "Convert this JSON to YAML: $(cat config.json)" -o text > config.yam
 
 ```bash
 # Quick answer without opening interactive mode
-open-cli -p "What does async/await do in JavaScript?"
+opencli -p "What does async/await do in JavaScript?"
 ```
 
 #### Code Generation
 
 ```bash
 # Generate boilerplate
-open-cli -p "Create a React component for a button with props" -o text
+opencli -p "Create a React component for a button with props" -o text
 ```
 
 ## Examples
@@ -140,38 +140,38 @@ open-cli -p "Create a React component for a button with props" -o text
 ### Example 1: List All TODOs
 
 ```bash
-open-cli -p "Find all TODO comments in this codebase" -o text
+opencli -p "Find all TODO comments in this codebase" -o text
 ```
 
 ### Example 2: Extract Function Names
 
 ```bash
-open-cli -p "List all exported functions from src/index.ts" -o json | jq -r '.content'
+opencli -p "List all exported functions from src/index.ts" -o json | jq -r '.content'
 ```
 
 ### Example 3: Explain Error
 
 ```bash
-open-cli -p "Explain this error: $(cat error.log)" -o text
+opencli -p "Explain this error: $(cat error.log)" -o text
 ```
 
 ### Example 4: Pipe to File
 
 ```bash
-open-cli -p "Write a Python script to parse CSV files" -o text > parse_csv.py
+opencli -p "Write a Python script to parse CSV files" -o text > parse_csv.py
 ```
 
 ### Example 5: Use Specific Model
 
 ```bash
-open-cli -p "Summarize this article" -m gpt-4o-mini
+opencli -p "Summarize this article" -m gpt-4o-mini
 ```
 
 ### Example 6: Chain with Other Tools
 
 ```bash
 # Get answer and copy to clipboard
-open-cli -p "What is the capital of France?" -o text | pbcopy
+opencli -p "What is the capital of France?" -o text | pbcopy
 ```
 
 ## Error Handling
@@ -186,7 +186,7 @@ Exit codes indicate success/failure:
 ### Check for Errors
 
 ```bash
-open-cli -p "Your prompt" -o text
+opencli -p "Your prompt" -o text
 if [ $? -eq 0 ]; then
   echo "Success"
 else
@@ -200,14 +200,14 @@ fi
 
 ```bash
 # Continue a saved session in headless mode
-open-cli --provider openai -m gpt-4o -p "Continue where we left off"
+opencli --provider openai -m gpt-4o -p "Continue where we left off"
 ```
 
 ### Save Session After
 
 ```bash
 # Run prompt and save the session
-open-cli -p "Help me with this bug" && open-cli --chat save bugfix
+opencli -p "Help me with this bug" && opencli --chat save bugfix
 ```
 
 ## Performance Tips
@@ -215,14 +215,14 @@ open-cli -p "Help me with this bug" && open-cli --chat save bugfix
 1. **Use smaller models** for simple tasks:
 
    ```bash
-   open-cli -p "Quick question" -m gpt-4o-mini
+   opencli -p "Quick question" -m gpt-4o-mini
    ```
 
 2. **Use JSON output** when parsing programmatically
 
 3. **Disable logging** for cleaner output:
    ```bash
-   open-cli -p "Prompt" 2>/dev/null
+   opencli -p "Prompt" 2>/dev/null
    ```
 
 ## Debugging
@@ -231,8 +231,8 @@ Use `--verbose` or `--debug` to troubleshoot:
 
 ```bash
 # See what's happening
-open-cli -p "Prompt" --verbose
+opencli -p "Prompt" --verbose
 
 # Full debug output
-open-cli -p "Prompt" --debug
+opencli -p "Prompt" --debug
 ```

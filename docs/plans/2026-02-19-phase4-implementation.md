@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add structured logging, error recovery with retries, and token counting with cost tracking to make open-cli production-ready.
+**Goal:** Add structured logging, error recovery with retries, and token counting with cost tracking to make opencli production-ready.
 
 **Architecture:** Three independent modules (logging, errors/retry, tokens/usage) that integrate into the existing chat loop and provider system. Each module is built TDD — tests first, then implementation, then integration.
 

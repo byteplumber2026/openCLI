@@ -237,7 +237,7 @@ Respond with `y` or `n`.
 When using `--debug` flag, tool executions are logged:
 
 ```bash
-open-cli --debug
+opencli --debug
 ```
 
 Debug output includes:

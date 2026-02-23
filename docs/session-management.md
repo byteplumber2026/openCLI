@@ -170,7 +170,7 @@ Save a long conversation before exiting, resume it next time:
 > /exit
 
 # Later...
-> open-cli
+> opencli
 > /chat resume current-work
 ```
 

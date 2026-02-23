@@ -1,6 +1,6 @@
 # Phase 4: Production Hardening — Design
 
-> Goal: Make open-cli reliable for daily use with structured logging, error recovery, and token/cost visibility.
+> Goal: Make opencli reliable for daily use with structured logging, error recovery, and token/cost visibility.
 
 ---
 

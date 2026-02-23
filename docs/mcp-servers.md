@@ -82,7 +82,7 @@ MCP servers are connected when Open-CLI starts. Restart to apply changes:
 
 ```bash
 exit
-open-cli
+opencli
 ```
 
 ## Available MCP Servers
@@ -232,7 +232,7 @@ Reconnect to all MCP servers:
 
 3. Check for errors with `--debug` flag:
    ```bash
-   open-cli --debug
+   opencli --debug
    ```
 
 ### Tools Not Available

@@ -91,8 +91,8 @@ Use `/models` to see available models and switch:
 Or use command line flags:
 
 ```bash
-open-cli -m gpt-4o-mini
-open-cli --provider gemini -m gemini-1.5-flash
+opencli -m gpt-4o-mini
+opencli --provider gemini -m gemini-1.5-flash
 ```
 
 ## Tokens
@@ -222,8 +222,8 @@ Open-CLI retries up to 3 times with increasing delays (1s, 2s, 4s).
 Use `--verbose` or `--debug` flags to see detailed logs:
 
 ```bash
-open-cli --verbose        # Info level
-open-cli --debug          # Debug level (detailed traces)
+opencli --verbose        # Info level
+opencli --debug          # Debug level (detailed traces)
 ```
 
 Debug logs show:

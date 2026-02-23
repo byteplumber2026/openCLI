@@ -6,7 +6,7 @@ This guide helps you diagnose and fix common issues with Open-CLI.
 
 ### Command Not Found
 
-**Symptom:** `zsh: command not found: open-cli`
+**Symptom:** `zsh: command not found: opencli`
 
 **Solutions:**
 
@@ -24,7 +24,7 @@ This guide helps you diagnose and fix common issues with Open-CLI.
 
 3. Or use npx to run without installing:
    ```bash
-   npx open-cli
+   npx opencli
    ```
 
 ### Permission Denied
@@ -152,7 +152,7 @@ export PATH="~/.npm-global/bin:$PATH"
 
 5. Use `--debug` for more details:
    ```bash
-   open-cli --debug
+   opencli --debug
    ```
 
 ### Timeout
@@ -421,7 +421,7 @@ export PATH="~/.npm-global/bin:$PATH"
 When all else fails, run with debug output:
 
 ```bash
-open-cli --debug
+opencli --debug
 ```
 
 Debug mode shows:

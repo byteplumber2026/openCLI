@@ -167,7 +167,7 @@ set -x OPENAI_API_KEY sk-...
 #### Temporary (one command)
 
 ```bash
-OPENAI_API_KEY=sk-... open-cli -p "Hello"
+OPENAI_API_KEY=sk-... opencli -p "Hello"
 ```
 
 ### Other Variables

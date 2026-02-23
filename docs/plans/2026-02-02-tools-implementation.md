@@ -339,7 +339,7 @@ import { fileRead, fileWrite, fileList, fileSearch } from '../../src/tools/files
 import { mkdirSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-const TEST_DIR = '/tmp/open-cli-tools-test';
+const TEST_DIR = '/tmp/opencli-tools-test';
 
 describe('File Tools', () => {
   beforeEach(() => {
@@ -1150,7 +1150,7 @@ import { TOOL_DEFINITIONS } from '../../src/tools/definitions.js';
 import { mkdirSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-const TEST_DIR = '/tmp/open-cli-integration-test';
+const TEST_DIR = '/tmp/opencli-integration-test';
 
 describe('Tools Integration', () => {
   beforeEach(() => {

@@ -12,13 +12,13 @@ Open-CLI is a powerful multi-provider AI terminal assistant that brings the powe
 ### Install via npm
 
 ```bash
-npm install -g open-cli
+npm install -g opencli
 ```
 
 ### Run without installing
 
 ```bash
-npx open-cli
+npx opencli
 ```
 
 ## Quick Start
@@ -58,7 +58,7 @@ source ~/.zshrc
 ### 2. Start a conversation
 
 ```bash
-open-cli
+opencli
 ```
 
 You'll see the interactive prompt:
@@ -127,16 +127,16 @@ Here are some examples of what you can do:
 
 ```bash
 # Single prompt, then exit
-open-cli -p "Explain this codebase"
+opencli -p "Explain this codebase"
 
 # Use a specific provider
-open-cli --provider gemini
+opencli --provider gemini
 
 # Use a specific model
-open-cli -m gpt-4o-mini
+opencli -m gpt-4o-mini
 
 # JSON output for scripting
-open-cli -p "List all TODOs" --output-format json
+opencli -p "List all TODOs" --output-format json
 ```
 
 ## Next Steps

@@ -175,7 +175,7 @@ import { homedir } from "os";
 import type { Session, SessionMetadata } from "./types.js";
 import { getProjectHash } from "./hash.js";
 
-const SESSIONS_DIR = join(homedir(), ".open-cli", "sessions");
+const SESSIONS_DIR = join(homedir(), ".opencli", "sessions");
 
 function getSessionDir(projectHash: string): string {
   return join(SESSIONS_DIR, projectHash);
@@ -307,7 +307,7 @@ import { mkdirSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
-const TEST_DIR = join(tmpdir(), "open-cli-session-test");
+const TEST_DIR = join(tmpdir(), "opencli-session-test");
 
 describe("Session Store", () => {
   beforeAll(() => {
@@ -1326,7 +1326,7 @@ import { join } from "path";
 import { homedir } from "os";
 import type { CustomCommand, CustomCommandDefinition } from "./types.js";
 
-const COMMANDS_DIR = join(homedir(), ".open-cli", "commands");
+const COMMANDS_DIR = join(homedir(), ".opencli", "commands");
 
 export async function loadCommands(): Promise<Map<string, CustomCommand>> {
   const commands = new Map<string, CustomCommand>();
@@ -1418,7 +1418,7 @@ import { mkdirSync, writeFileSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
-const TEST_DIR = join(tmpdir(), "open-cli-commands-test");
+const TEST_DIR = join(tmpdir(), "opencli-commands-test");
 
 describe("Command Loader", () => {
   beforeAll(() => {
@@ -2063,7 +2063,7 @@ import { mkdirSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
-const TEST_DIR = join(tmpdir(), "open-cli-phase2-test");
+const TEST_DIR = join(tmpdir(), "opencli-phase2-test");
 
 describe("Phase 2 Integration", () => {
   beforeAll(() => {
@@ -2178,7 +2178,7 @@ Utilities:
   /styles            Change terminal color theme
   /clear             Clear conversation history
   /help              Show this help message
-  /exit              Exit open-cli
+  /exit              Exit opencli
 
 File Context:
   Use @filename or @directory/ to include files:
