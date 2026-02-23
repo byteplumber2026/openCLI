@@ -31,6 +31,41 @@ import { UsageTracker } from "../providers/usage.js";
 const require = createRequire(import.meta.url);
 const { version: APP_VERSION } = require("../../package.json");
 
+const BUILTIN_COMMANDS = [
+  "help",
+  "exit",
+  "quit",
+  "clear",
+  "models",
+  "provider",
+  "memory",
+  "chat",
+  "mcp",
+  "stats",
+  "export",
+  "copy",
+  "about",
+  "tools",
+  "compress",
+  "styles",
+  "file",
+  "commands",
+];
+
+export function resolveCommand(partial: string): string | null {
+  if (BUILTIN_COMMANDS.includes(partial)) {
+    return partial;
+  }
+
+  const matches = BUILTIN_COMMANDS.filter((cmd) => cmd.startsWith(partial));
+
+  if (matches.length >= 1) {
+    return matches[0];
+  }
+
+  return null;
+}
+
 export interface Command {
   name: string;
   args: string;
@@ -111,7 +146,10 @@ export async function handleCommand(
   action: "continue" | "exit" | "custom_command";
   state: ChatState;
 }> {
-  switch (command.name) {
+  const resolvedName = resolveCommand(command.name);
+  const cmdName = resolvedName || command.name;
+
+  switch (cmdName) {
     case "help":
       console.log(HELP_TEXT);
       return { action: "continue", state };
@@ -638,8 +676,8 @@ export async function handleCommand(
 
     default: {
       const customCommands = await loadCommands();
-      if (customCommands.has(command.name)) {
-        const customCmd = customCommands.get(command.name)!;
+      if (customCommands.has(cmdName)) {
+        const customCmd = customCommands.get(cmdName)!;
         const prompt = await executeCustomCommand(customCmd, command.args);
         state.messages.push({ role: "user", content: prompt });
         return { action: "custom_command", state };
