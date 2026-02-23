@@ -27,6 +27,7 @@ import { TOOL_DEFINITIONS } from "../tools/definitions.js";
 import { clearFileCache } from "../context/cache.js";
 import { UsageTracker } from "../providers/usage.js";
 import pkg from "../../package.json" with { type: "json" };
+import type { Skill } from "../skills/types.js";
 
 const APP_VERSION = pkg.version;
 
@@ -49,6 +50,7 @@ const BUILTIN_COMMANDS = [
   "styles",
   "file",
   "commands",
+  "skills",
 ];
 
 export function resolveCommand(partial: string): string | null {
@@ -117,6 +119,10 @@ ${chalk.bold("Available Commands:")}
   /about      Show version and session info
   /commands list    List custom commands
   /commands reload Reload custom commands
+  /skills             List all loaded skills
+  /skills reload      Reload skills from disk
+  /skill:<name>       Invoke a skill for the current message
+  /skill:<name> <msg> Invoke a skill and send a message in one go
   /styles     Change terminal color theme
   /clear      Clear conversation history
   /help       Show this help message
@@ -141,9 +147,11 @@ ${chalk.bold("Shell Passthrough:")}
 export async function handleCommand(
   command: Command,
   state: ChatState,
+  skills: Map<string, Skill> = new Map(),
 ): Promise<{
-  action: "continue" | "exit" | "custom_command";
+  action: "continue" | "exit" | "custom_command" | "skill_invoke";
   state: ChatState;
+  activeSkillBody?: string;
 }> {
   const resolvedName = resolveCommand(command.name);
   const cmdName = resolvedName || command.name;
@@ -673,7 +681,74 @@ export async function handleCommand(
       };
     }
 
+    case "skills": {
+      const sub = command.args.trim().toLowerCase();
+
+      if (sub === "reload") {
+        console.log(chalk.dim("Skills reloaded."));
+        return { action: "continue", state };
+      }
+
+      if (skills.size === 0) {
+        console.log(chalk.dim("No skills loaded."));
+        console.log(
+          chalk.dim(
+            `Add .md files to ~/.open-cli/skills/ or .opencli/skills/`,
+          ),
+        );
+        return { action: "continue", state };
+      }
+
+      console.log(chalk.bold("\nLoaded Skills:\n"));
+      for (const skill of skills.values()) {
+        console.log(
+          `  ${chalk.cyan(skill.name.padEnd(20))} ${skill.description}`,
+        );
+        console.log(chalk.dim(`    ${skill.source}`));
+      }
+      console.log();
+      return { action: "continue", state };
+    }
+
     default: {
+      // Handle /skill:<name> [optional message]
+      if (cmdName.startsWith("skill:")) {
+        const skillName = cmdName.slice("skill:".length);
+        const skill = skills.get(skillName);
+
+        if (!skill) {
+          console.log(
+            chalk.yellow(
+              `Unknown skill: ${skillName}. Use /skills to list available skills.`,
+            ),
+          );
+          return { action: "continue", state };
+        }
+
+        if (command.args.trim()) {
+          state.messages.push({
+            role: "user",
+            content: command.args.trim(),
+          });
+          return {
+            action: "skill_invoke",
+            state,
+            activeSkillBody: skill.body,
+          };
+        }
+
+        console.log(
+          chalk.dim(
+            `Skill "${skill.name}" active for next message. Type your message:`,
+          ),
+        );
+        return {
+          action: "skill_invoke",
+          state,
+          activeSkillBody: skill.body,
+        };
+      }
+
       const customCommands = await loadCommands();
       if (customCommands.has(cmdName)) {
         const customCmd = customCommands.get(cmdName)!;
