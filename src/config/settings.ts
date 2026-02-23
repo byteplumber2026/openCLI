@@ -1,4 +1,7 @@
 import Conf from "conf";
+import { existsSync, mkdirSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
 import type { MCPServerConfig } from "../mcp/types.js";
 
 interface OpenCliConfig {
@@ -33,8 +36,21 @@ const defaults: OpenCliConfig = {
   mcpServers: {},
 };
 
+const CONFIG_DIR = join(homedir(), ".open-cli");
+const CONFIG_PATH = join(CONFIG_DIR, "settings.json");
+
+export function ensureSettingsFile(): void {
+  if (!existsSync(CONFIG_DIR)) {
+    mkdirSync(CONFIG_DIR, { recursive: true });
+  }
+}
+
+ensureSettingsFile();
+
 export const config = new Conf<OpenCliConfig>({
   projectName: "open-cli",
+  cwd: CONFIG_DIR,
+  configName: "settings",
   defaults,
 });
 
