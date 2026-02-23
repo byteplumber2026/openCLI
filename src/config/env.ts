@@ -3,6 +3,8 @@ const ENV_VARS: Record<string, string> = {
   grok: 'XAI_API_KEY',
   minimax: 'MINIMAX_API_KEY',
   gemini: 'GOOGLE_API_KEY',
+  deepseek: 'DEEPSEEK_API_KEY',
+  openrouter: 'OPENROUTER_API_KEY',
 };
 
 export function getApiKey(provider: string): string | undefined {
