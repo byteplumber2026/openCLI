@@ -45,6 +45,10 @@ export GOOGLE_API_KEY=AI...
 export XAI_API_KEY=x...
 # or
 export MINIMAX_API_KEY=...
+# or
+export DEEPSEEK_API_KEY=sk-...
+# or
+export OPENROUTER_API_KEY=sk-or-...
 
 # Start interactive chat
 opencli
@@ -66,6 +70,8 @@ Commands available in chat:
 - `/help` - Show help message
 - `/models` - Switch model
 - `/provider` - Switch provider
+- `/skills` - List loaded skills
+- `/skill:<name>` - Invoke a skill for the current message
 - `/stats` - Show session statistics
 - `/copy` - Copy last response to clipboard
 - `/clear` - Clear conversation history

@@ -8,12 +8,14 @@ Open-CLI supports multiple AI providers, giving you flexibility in choosing the 
 
 ### Supported Providers
 
-| Provider      | Environment Variable | Best For                              |
-| ------------- | -------------------- | ------------------------------------- |
-| OpenAI        | `OPENAI_API_KEY`     | General purpose, best tool support    |
-| Google Gemini | `GOOGLE_API_KEY`     | Large context windows, fast responses |
-| xAI Grok      | `XAI_API_KEY`        | Creative tasks, X integration         |
-| Minimax       | `MINIMAX_API_KEY`    | Cost-effective, Chinese language      |
+| Provider      | Environment Variable  | Best For                              |
+| ------------- | --------------------- | ------------------------------------- |
+| OpenAI        | `OPENAI_API_KEY`      | General purpose, best tool support    |
+| Google Gemini | `GOOGLE_API_KEY`      | Large context windows, fast responses |
+| xAI Grok      | `XAI_API_KEY`         | Creative tasks, X integration         |
+| Minimax       | `MINIMAX_API_KEY`     | Cost-effective, Chinese language      |
+| DeepSeek      | `DEEPSEEK_API_KEY`    | Reasoning tasks, cost-effective       |
+| OpenRouter    | `OPENROUTER_API_KEY`  | Access 15+ models under one API key   |
 
 ### Setting Up Providers
 
@@ -38,6 +40,8 @@ When multiple providers are available, use `/provider` to switch between them:
     gemini
     grok
     minimax
+    deepseek
+    openrouter
 ```
 
 ## Models
@@ -75,6 +79,33 @@ Each provider offers different models with varying capabilities, context windows
 | `abab6.5-chat` | ABAB 6.5 Chat | 245K           | Latest model  |
 | `abab5.5-chat` | ABAB 5.5 Chat | 16K            | Budget option |
 
+### DeepSeek Models
+
+| Model ID              | Name        | Context Window | Notes                    |
+| --------------------- | ----------- | -------------- | ------------------------ |
+| `deepseek-chat`       | DeepSeek V3 | 64K            | General purpose flagship |
+| `deepseek-reasoner`   | DeepSeek R1 | 64K            | Reasoning / thinking     |
+
+### OpenRouter Models (curated)
+
+| Model ID                                | Name              | Context Window |
+| --------------------------------------- | ----------------- | -------------- |
+| `anthropic/claude-opus-4-5`             | Claude Opus 4.5   | 200K           |
+| `anthropic/claude-sonnet-4-5`           | Claude Sonnet 4.5 | 200K           |
+| `anthropic/claude-haiku-4-5`            | Claude Haiku 4.5  | 200K           |
+| `meta-llama/llama-3.3-70b-instruct`     | Llama 3.3 70B     | 128K           |
+| `meta-llama/llama-3.1-405b-instruct`    | Llama 3.1 405B    | 128K           |
+| `google/gemini-2.0-flash-001`           | Gemini 2.0 Flash  | 1M             |
+| `google/gemini-2.5-pro-preview`         | Gemini 2.5 Pro    | 1M             |
+| `mistralai/mistral-large-2411`          | Mistral Large     | 128K           |
+| `mistralai/codestral-2501`              | Codestral         | 256K           |
+| `deepseek/deepseek-r1`                  | DeepSeek R1       | 64K            |
+| `deepseek/deepseek-chat-v3-0324`        | DeepSeek V3       | 64K            |
+| `x-ai/grok-3`                           | Grok 3            | 131K           |
+| `openai/gpt-4o`                         | GPT-4o            | 128K           |
+| `openai/o3-mini`                        | o3-mini           | 200K           |
+| `qwen/qwen-2.5-72b-instruct`            | Qwen 2.5 72B      | 128K           |
+
 ### Selecting Models
 
 Use `/models` to see available models and switch:
@@ -92,7 +123,7 @@ Or use command line flags:
 
 ```bash
 opencli -m gpt-4o-mini
-opencli --provider gemini -m gemini-1.5-flash
+opencli --provider gemini -m gemini-2.0-flash
 ```
 
 ## Tokens

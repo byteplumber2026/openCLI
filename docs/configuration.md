@@ -37,7 +37,7 @@ The default AI provider to use.
 "defaultProvider": "openai"
 ```
 
-Valid values: `openai`, `gemini`, `grok`, `minimax`
+Valid values: `openai`, `gemini`, `grok`, `minimax`, `deepseek`, `openrouter`
 
 ### defaultModel
 
