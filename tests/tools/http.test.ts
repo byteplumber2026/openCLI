@@ -225,4 +225,55 @@ describe("httpRequest", () => {
       expect.not.objectContaining({ body: expect.anything() }),
     );
   });
+
+  it("converts HTML to plain text for readability", async () => {
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head><title>Test Page</title></head>
+<body>
+  <h1>Welcome</h1>
+  <p>This is a <strong>test</strong> paragraph.</p>
+  <script>console.log('hidden')</script>
+  <style>.hidden { display: none; }</style>
+  <nav><a href="/link">Navigation</a></nav>
+  <footer>Footer content</footer>
+</body>
+</html>`;
+
+    global.fetch = vi.fn().mockResolvedValue({
+      status: 200,
+      statusText: "OK",
+      headers: new Headers({ "content-type": "text/html; charset=utf-8" }),
+      text: () => Promise.resolve(htmlContent),
+    });
+
+    const result = await httpRequest({
+      method: "GET",
+      url: "https://example.com/page",
+    });
+
+    expect(result).toContain("Status: 200 OK");
+    expect(result).toContain("Welcome");
+    expect(result).toContain("test paragraph");
+    expect(result).not.toContain("<html>");
+    expect(result).not.toContain("<body>");
+    expect(result).not.toContain("<script>");
+    expect(result).not.toContain("<style>");
+  });
+
+  it("returns raw content for non-HTML responses", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      status: 200,
+      statusText: "OK",
+      headers: new Headers({ "content-type": "application/json" }),
+      text: () => Promise.resolve('{"key": "<value>"}'),
+    });
+
+    const result = await httpRequest({
+      method: "GET",
+      url: "https://api.example.com/data",
+    });
+
+    expect(result).toContain('{"key": "<value>"}');
+  });
 });
