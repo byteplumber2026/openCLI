@@ -87,7 +87,8 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   },
   {
     name: "http_request",
-    description: "Make an HTTP request to a URL",
+    description:
+      "Fetch content from a URL. Use this to retrieve and analyze webpages, APIs, or any HTTP endpoint. Returns status, headers, and body content.",
     parameters: {
       type: "object",
       properties: {

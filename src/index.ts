@@ -16,7 +16,7 @@ import {
 import { createLogger } from "./logging/logger.js";
 
 program
-  .name("open-cli")
+  .name("opencli")
   .description("Multi-provider CLI AI assistant")
   .version("0.1.0")
   .option("-p, --prompt <text>", "Run in headless mode with a single prompt")

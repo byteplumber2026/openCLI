@@ -1,11 +1,11 @@
 {
-  "name": "open-cli",
+  "name": "opencli",
   "version": "0.1.0",
   "description": "Multi-provider CLI AI assistant",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "open-cli": "dist/index.js"
+    "opencli": "dist/index.js"
   },
   "scripts": {
     "dev": "tsx src/index.ts",

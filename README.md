@@ -24,13 +24,13 @@ A powerful multi-provider AI terminal assistant with built-in tools, session man
 ## Installation
 
 ```bash
-npm install -g open-cli
+npm install -g opencli
 ```
 
 Or run directly:
 
 ```bash
-npx open-cli
+npx opencli
 ```
 
 ## Quick Start
@@ -46,10 +46,10 @@ export XAI_API_KEY=x...
 export MINIMAX_API_KEY=...
 
 # Start interactive chat
-open-cli
+opencli
 
 # Or run a single prompt
-open-cli -p "Explain what this codebase does"
+opencli -p "Explain what this codebase does"
 ```
 
 ## Usage
@@ -57,7 +57,7 @@ open-cli -p "Explain what this codebase does"
 ### Interactive Mode
 
 ```bash
-open-cli
+opencli
 ```
 
 Commands available in chat:
@@ -99,18 +99,18 @@ Commands available in chat:
 
 ```bash
 # Single prompt, exit after response
-open-cli -p "Explain this codebase"
+opencli -p "Explain this codebase"
 
 # JSON output for parsing
-open-cli -p "List all TODOs" --output-format json
+opencli -p "List all TODOs" --output-format json
 
 # Stream JSON events
-open-cli -p "Run tests" --output-format stream-json
+opencli -p "Run tests" --output-format stream-json
 ```
 
 ### MCP Servers
 
-Configure MCP servers in `~/.open-cli/settings.json`:
+Configure MCP servers in `~/.opencli/settings.json`:
 
 ```json
 {
@@ -130,10 +130,10 @@ Commands:
 
 ### Custom Commands
 
-Create custom commands in `~/.open-cli/commands/` as TOML files:
+Create custom commands in `~/.opencli/commands/` as TOML files:
 
 ```toml
-# ~/.open-cli/commands/review.toml
+# ~/.opencli/commands/review.toml
 name = "review"
 description = "Review code for issues"
 prompt = """
@@ -158,7 +158,7 @@ Usage:
 
 Create context files for project-specific instructions:
 
-- `~/.open-cli/AGENTS.md` - Global user context
+- `~/.opencli/AGENTS.md` - Global user context
 - `<project>/AGENTS.md` - Project context
 - `<subdir>/AGENTS.md` - JIT context for specific directories
 
@@ -171,7 +171,7 @@ Commands:
 
 ## Configuration
 
-Settings are stored in `~/.open-cli/settings.json`:
+Settings are stored in `~/.opencli/settings.json`:
 
 ```json
 {
