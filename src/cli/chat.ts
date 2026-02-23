@@ -3,6 +3,7 @@ import * as readline from "readline";
 import * as readlinePromises from "readline/promises";
 import chalk from "chalk";
 import type { Provider, Message } from "../providers/types.js";
+import { loadSkills } from "../skills/loader.js";
 import type { Skill } from "../skills/types.js";
 import { formatPrompt, streamWrite } from "./renderer.js";
 import {
@@ -78,6 +79,16 @@ export async function startChat(
     messages: [],
     usage: new UsageTracker(),
   };
+
+  let loadedSkills: Map<string, Skill> = await loadSkills();
+
+  if (loadedSkills.size > 0) {
+    console.log(
+      chalk.dim(
+        `Loaded ${loadedSkills.size} skill${loadedSkills.size === 1 ? "" : "s"}. Use /skills to list them.`,
+      ),
+    );
+  }
 
   // Set model on provider if supported
   if ("setModel" in provider) {
@@ -167,6 +178,8 @@ export async function startChat(
   };
 
   const runLoop = async (): Promise<void> => {
+    let pendingSkillBody: string | undefined = undefined;
+
     while (true) {
       const input = await promptWithHistory(
         formatPrompt(state.provider.name, state.model),
@@ -203,15 +216,33 @@ export async function startChat(
       // Handle commands
       if (isCommand(trimmed)) {
         const command = parseCommand(trimmed);
-        const result = await handleCommand(command, state);
+        const result = await handleCommand(command, state, loadedSkills);
         state = result.state;
 
         if (result.action === "exit") {
           return;
         }
 
+        if (command.name === "skills" && command.args.trim() === "reload") {
+          loadedSkills = await loadSkills();
+          if (loadedSkills.size > 0) {
+            console.log(chalk.dim(`Loaded ${loadedSkills.size} skill(s).`));
+          }
+        }
+
         if (result.action === "custom_command") {
-          await chatWithTools(state);
+          await chatWithTools(state, loadedSkills);
+        }
+
+        if (result.action === "skill_invoke") {
+          const lastMsg = state.messages[state.messages.length - 1];
+          if (lastMsg && lastMsg.role === "user") {
+            // Message already pushed (had args), fire immediately
+            await chatWithTools(state, loadedSkills, result.activeSkillBody);
+          } else {
+            // No args: store, apply to next user message
+            pendingSkillBody = result.activeSkillBody;
+          }
         }
 
         continue;
@@ -223,8 +254,12 @@ export async function startChat(
 
       state.messages.push({ role: "user", content: userContent });
 
+      // Apply any pending skill from /skill:<name> (no-args form)
+      const skillBodyForThisTurn = pendingSkillBody;
+      pendingSkillBody = undefined;
+
       // Chat with tool loop
-      await chatWithTools(state);
+      await chatWithTools(state, loadedSkills, skillBodyForThisTurn);
     }
   };
 
